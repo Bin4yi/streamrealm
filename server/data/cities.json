@@ -1,0 +1,11 @@
+{
+  "coimbra": {
+    "name": "Coimbra",
+    "country": "Portugal",
+    "bbox": [-8.465, 40.175, -8.36, 40.258],
+    "center": [-8.405, 40.2225],
+    "zoom": 14.2,
+    "waterways": ["stream"],
+    "note": "OneAquaHealth research city. Focus on Ribeira de Coselhas and nearby urban streams. Big rivers and farm canals are left out so the game stays walkable."
+  }
+}

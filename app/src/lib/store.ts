@@ -1,0 +1,73 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
+
+import type { Position } from './geo';
+import type { TeamId } from './theme';
+
+export type LocalPlayer = { id: string; nickname: string; avatar: string; team: TeamId };
+export type MapFilter = 'all' | 'mine' | 'fog' | 'disputed' | 'treasures';
+
+/** Last claim, used by the map to play the "paint" animation once. */
+export type ClaimFlash = { tileId: string; team: TeamId; points: number; at: number };
+
+type GameState = {
+  hydrated: boolean;
+  player: LocalPlayer | null;
+  city: string;
+  position: Position | null;
+  realGps: boolean;
+  devPanelEnabled: boolean;
+  devPanelOpen: boolean;
+  teleportMode: boolean;
+  timeWarpDays: number;
+  autoTick: boolean;
+  muted: boolean;
+  filter: MapFilter;
+  selectedTileId: string | null;
+  claimFlash: ClaimFlash | null;
+  useDemoPhotos: boolean;
+  setPlayer: (p: LocalPlayer | null) => void;
+  setPosition: (p: Position | null) => void;
+  set: (patch: Partial<Omit<GameState, 'set' | 'setPlayer' | 'setPosition'>>) => void;
+};
+
+export const useGame = create<GameState>()(
+  persist(
+    (set) => ({
+      hydrated: false,
+      player: null,
+      city: 'coimbra',
+      position: null,
+      realGps: false,
+      devPanelEnabled: true,
+      devPanelOpen: false,
+      teleportMode: true,
+      timeWarpDays: 0,
+      autoTick: false,
+      muted: false,
+      filter: 'all',
+      selectedTileId: null,
+      claimFlash: null,
+      useDemoPhotos: false,
+      setPlayer: (player) => set({ player }),
+      setPosition: (position) => set({ position }),
+      set: (patch) => set(patch),
+    }),
+    {
+      name: 'streamrealm-game',
+      storage: createJSONStorage(() => AsyncStorage),
+      partialize: (s) => ({
+        player: s.player,
+        city: s.city,
+        position: s.position,
+        realGps: s.realGps,
+        devPanelEnabled: s.devPanelEnabled,
+        timeWarpDays: s.timeWarpDays,
+        muted: s.muted,
+        useDemoPhotos: s.useDemoPhotos,
+      }),
+      onRehydrateStorage: () => () => useGame.setState({ hydrated: true }),
+    },
+  ),
+);

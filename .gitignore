@@ -1,0 +1,20 @@
+# Python
+server/.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Runtime data (generated)
+server/data/streamrealm.db*
+server/data/uploads/*
+!server/data/uploads/.gitkeep
+server/data/demo-photos/generated/*
+!server/data/demo-photos/generated/.gitkeep
+
+# Env
+.env
+*.local
+
+# OS / editors
+.DS_Store
+Thumbs.db

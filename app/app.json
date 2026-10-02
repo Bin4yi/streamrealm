@@ -1,0 +1,61 @@
+{
+  "expo": {
+    "name": "StreamRealm",
+    "slug": "streamrealm",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "streamrealm",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "icon": "./assets/expo.icon"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0E2A33",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "backgroundImage": "./assets/images/android-icon-background.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "single",
+      "favicon": "./assets/images/favicon.png",
+      "name": "StreamRealm",
+      "shortName": "StreamRealm",
+      "themeColor": "#0E2A33",
+      "backgroundColor": "#081C23",
+      "description": "Conquer your city stream. Help scientists protect it."
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#0E2A33",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 76
+        }
+      ],
+      "expo-audio",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "StreamRealm uses your location to find the stream tile next to you."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "StreamRealm uses the camera to take stream check photos."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "backgroundColor": "#081C23"
+  }
+}
