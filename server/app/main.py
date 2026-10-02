@@ -12,7 +12,7 @@ from sqlmodel import Session, select
 from . import config
 from .db import engine, init_db
 from .models import Player
-from .routes import dev, play, social, world
+from .routes import dashboard, dev, export, play, social, world
 from .services.bots import seed_world
 
 
@@ -40,6 +40,8 @@ app.mount("/demo-photos", StaticFiles(directory=config.DEMO_PHOTO_DIR), name="de
 app.include_router(world.router)
 app.include_router(play.router)
 app.include_router(social.router)
+app.include_router(dashboard.router)
+app.include_router(export.router)
 app.include_router(dev.router)
 
 

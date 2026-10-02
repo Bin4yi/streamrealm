@@ -169,7 +169,7 @@ def kingdom_stats(session: Session, now: datetime) -> dict:
                 k["healed"] += 1
     for k in out.values():
         k["share"] = round(k["tiles"] / total, 4) if total else 0
-        k["health"] = rules.kingdom_health(k.pop("health_scores"))
+        k["health"] = rules.kingdom_health(k.pop("health_scores"), k["healed"])
     out["_total"] = total  # type: ignore[assignment]
     return out
 

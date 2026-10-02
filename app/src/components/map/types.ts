@@ -44,17 +44,20 @@ function ramp(stops: [number, string][], v: number): string {
   return stops[stops.length - 1][1];
 }
 
+/** Sequential, one hue: dark blue = just checked, pale = old data. */
 export const FRESHNESS_STOPS: [number, string][] = [
-  [0, '#1A9E77'],
-  [7, '#E6C229'],
-  [14, '#E4572E'],
-  [30, '#7A1F1F'],
+  [0, '#104281'],
+  [7, '#3987e5'],
+  [14, '#9ec5f4'],
+  [30, '#cde2fb'],
 ];
+/** Diverging red <-> blue with a gray midpoint at 50. */
 export const HEALTH_STOPS: [number, string][] = [
-  [0, '#B2182B'],
-  [50, '#F4A582'],
-  [75, '#92C5DE'],
-  [100, '#2166AC'],
+  [0, '#b8302f'],
+  [25, '#e34948'],
+  [50, '#b9b8b3'],
+  [75, '#3987e5'],
+  [100, '#1c5cab'],
 ];
 
 /** Colour and visibility of one tile for a given map mode and filter. */

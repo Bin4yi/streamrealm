@@ -32,6 +32,7 @@ STREAK_BONUS_MAX = 50
 TREASURE_TYPES = ("pipe", "trash", "wildlife", "plant", "algae")
 FIX_HEALTH_BONUS = 15      # scientist marks a treasure "fixed"
 CLEANUP_HEALTH_BONUS = 10  # a cleanup event is logged
+KINGDOM_HEAL_BONUS = 2     # each healed tile (fixed problem / cleanup) adds this to the kingdom health
 
 # Question -> ordered list of allowed values (order matters for partial agreement).
 QUESTIONS: dict[str, list[str]] = {
@@ -188,7 +189,8 @@ def resolve_by_majority(a: dict[str, str], b: dict[str, str], c: dict[str, str])
     return "b" if agreement(c, b) > agreement(c, a) else "a"
 
 
-def kingdom_health(tile_scores: list[int]) -> Optional[int]:
+def kingdom_health(tile_scores: list[int], healed_tiles: int = 0) -> Optional[int]:
+    """Average health of the team's fresh + fading tiles, plus a small bonus per healed tile."""
     if not tile_scores:
         return None
-    return round(sum(tile_scores) / len(tile_scores))
+    return min(100, round(sum(tile_scores) / len(tile_scores) + KINGDOM_HEAL_BONUS * healed_tiles))
