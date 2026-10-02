@@ -4,6 +4,8 @@ import { ScrollView, Text, View } from 'react-native';
 
 import {
   ChunkyProgress,
+  CoinLoader,
+  EmptyArt,
   CoinFly,
   GameButton,
   GameImage,
@@ -70,6 +72,9 @@ export default function KitShowcase() {
             <GameButton label="MODAL" color="orange" size="S" onPress={() => setModal(true)} />
             <GameButton label="COINS" color="green" size="S" onPress={() => setFly((f) => f + 1)} />
           </View>
+          <EmptyArt img={Images.moment.emptyTreasures} title="No treasures yet" text="Find a pipe, trash, wildlife, a plant or algae during a check." />
+          <EmptyArt img={Images.moment.emptyPeace} title="All is peaceful" text="No disputes right now." />
+          <CoinLoader label="Loading…" />
           <RewardBurst size={220}>
             <GameImage src={Images.moment.victory} size={140} />
           </RewardBurst>

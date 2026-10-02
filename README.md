@@ -4,13 +4,11 @@
 
 StreamRealm is a territory game (like Pokémon GO or Ingress) for the **OneAquaHealth IEEE Global Hackathon 2026, Track 5: Community & Gamification**. Citizens claim 100 m pieces of a real city stream by doing a quick photo check. The game rules are secretly a scientific sampling plan.
 
-![Map with teams](docs/screenshots/02-map-teams.png)
-
-| Claim a tile | Photo check (you decide) | Victory | Kingdom |
+| Map | Stream check | Victory | Kingdom |
 |---|---|---|---|
-| ![](docs/screenshots/03-map-check-this-tile.png) | ![](docs/screenshots/06-photo-check.png) | ![](docs/screenshots/07-victory.png) | ![](docs/screenshots/10-kingdom.png) |
+| ![Map HUD](docs/screenshots/03-map-hud.png) | ![Photo check](docs/screenshots/11-claim-check.png) | ![Victory](docs/screenshots/13-victory.png) | ![Kingdom](docs/screenshots/15-kingdom-stage-5.png) |
 
-![Scientist dashboard](docs/screenshots/14-dashboard.png)
+![Scientist dashboard](docs/screenshots/22-dashboard.png)
 
 ![Python](https://img.shields.io/badge/server-FastAPI%20%2B%20SQLModel-0E2A33) ![Expo](https://img.shields.io/badge/app-Expo%20SDK%2057-2F80ED) ![Map](https://img.shields.io/badge/map-MapLibre%20%2B%20OpenStreetMap-27AE60) ![FHIR](https://img.shields.io/badge/export-FHIR%20R4-F2994A) ![License](https://img.shields.io/badge/license-MIT-F2C94C)
 
@@ -109,9 +107,9 @@ flowchart LR
 
 **Tech stack**
 
-- **App:** Expo SDK 57, TypeScript, expo-router, zustand, TanStack Query, react-native-reanimated, MapLibre GL JS 5 (web), react-native-maps (native), Turf, react-native-svg, Cinzel + Nunito fonts.
+- **App:** Expo SDK 57, TypeScript, expo-router, zustand, TanStack Query, react-native-reanimated, MapLibre GL JS 5 (web), react-native-maps (native), Turf, react-native-svg, Lilita One + Nunito fonts (SIL OFL), a code-drawn "Kingdom UI" kit (`app/src/components/kit/`).
 - **Server:** Python 3.11+ (tested on 3.14), FastAPI, SQLModel + SQLite, Pillow, ImageHash, OpenCV, Shapely, httpx, OpenAI SDK (optional), matplotlib.
-- **Tests:** Jest (17 game-rule tests), pytest (27 tests), an API smoke test, and a Playwright screenshot run.
+- **Tests:** Jest (17 game-rule tests), pytest (28 server tests + 8 image-pipeline tests), an API smoke test, and a Playwright screenshot run.
 
 More detail: [docs/architecture.md](docs/architecture.md) · rules and numbers: [docs/game-design.md](docs/game-design.md) · choices: [docs/DECISIONS.md](docs/DECISIONS.md).
 
@@ -216,8 +214,11 @@ More in [docs/safety.md](docs/safety.md).
 - **No accounts.** The player id lives in the browser's local storage. Anyone with the id could act as that player. Fine for a demo, not for production.
 - **Native apps were not run on a device.** The Android bundle builds (`npx expo export --platform android`), but we had no phone or emulator. On this Windows machine, Hermes bytecode needed `--no-bytecode`. The native map is simpler than the web map (no glow or animations).
 - **No face blur yet** for photos that show people.
+- **Base map depends on the internet.** The map uses OpenFreeMap; if its style does not load in 9 s, or its base tiles have not arrived 12 s after the style, it switches to OpenStreetMap raster tiles. Stream tiles, markers and the game always show, but on a slow network the background map fills in slowly. During the build OpenFreeMap tiles stopped loading for a while (a plain MapLibre test page showed the same), so some screenshots have a partly empty background.
 - **Single server, SQLite.** Good for a city pilot, not for many cities at once.
 - Bot answers come from a hidden "true condition" per tile plus noise. They are not real observations.
+- **Images:** two onboarding images are smaller than the 1024 px target after trimming (859 and 875 px), so they are shown at source size; there is no @2x/@3x for them, the emblems or the mascots (never upscaled). The full-screen splash on Android 12+ is limited by the system splash API (icon-style), so the splash art shows in full only on iOS and inside the app.
+- The `/kingdom?preview=<health>` view (Dev Panel only) sets the plant stage for demos and screenshots; it is labelled "Preview" on screen.
 
 ## 11. Future work
 
@@ -226,6 +227,16 @@ More in [docs/safety.md](docs/safety.md).
 - A **real pilot** in a OneAquaHealth city (Coimbra is ready): measure return rate, coverage and data age against the simulation.
 - Portuguese and other languages (the UI text is already short and simple).
 - Proper accounts, kid-safe team chat, school and club leagues.
+
+## Art & Design
+
+Game images were generated with OpenAI GPT Image 2.5 from our own prompts (total cost $0.73, as reported by the team), then processed with `scripts/process_assets.py` (alpha clean-up, halo fix, trimming, @1x/@2x/@3x, team-tinted flags, aligned plant stages). The UI (wood and stone panels, ribbons, 3D buttons, progress bars) is drawn in code. Fonts: Lilita One and Nunito (SIL Open Font License). Visual style inspired by mobile strategy games; no third-party game art is used.
+
+| Onboarding | Team pick | Quests | Badges |
+|---|---|---|---|
+| ![](docs/screenshots/01-onboarding-1.png) | ![](docs/screenshots/02-team-pick.png) | ![](docs/screenshots/16-quests-chest.png) | ![](docs/screenshots/18-profile-badges.png) |
+
+All processed images on dark, light and checkerboard backgrounds: [docs/screenshots/contact-sheet.png](docs/screenshots/contact-sheet.png). Design system: [docs/design-system.md](docs/design-system.md). The scientist dashboard deliberately keeps a plain, professional look.
 
 ## 12. AI assistance disclosure
 

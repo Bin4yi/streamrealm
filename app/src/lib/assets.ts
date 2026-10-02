@@ -85,9 +85,8 @@ export const Images = {
     kingfishers: require('../../assets/images/moments/tile-conquered-kingfishers.png') as Src,
   },
   identity: {
-    splash: require('../../assets/images/identity/splash.png') as Src,
+    splash: require('../../assets/images/identity/splash.jpg') as Src,
     bgPattern: require('../../assets/images/identity/bg-pattern.png') as Src,
-    icon: require('../../assets/images/identity/icon.png') as Src,
   },
   plant: [require('../../assets/images/plant/plant-stage-1.png') as Src, require('../../assets/images/plant/plant-stage-2.png') as Src, require('../../assets/images/plant/plant-stage-3.png') as Src, require('../../assets/images/plant/plant-stage-4.png') as Src, require('../../assets/images/plant/plant-stage-5.png') as Src],
 } as const;

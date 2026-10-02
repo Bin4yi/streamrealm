@@ -6,7 +6,7 @@ export const world = { top: '#0E2A33', bottom: '#14404B', vignette: 'rgba(3,12,1
 
 export const wood = { base: '#8B5A2B', light: '#A8733D', dark: '#5E3A17', outline: '#3B240E', grain: 'rgba(59,36,14,0.28)' } as const;
 export const stone = { base: '#6E7B85', light: '#8C99A3', dark: '#47525A', outline: '#262D32' } as const;
-export const parchment = { bg: '#F3E3C3', bgDark: '#E8D3A8', text: '#4A2F14', muted: '#7A5A36', line: '#D4BC8F' } as const;
+export const parchment = { bg: '#F3E3C3', bgDark: '#E8D3A8', text: '#4A2F14', muted: '#6A4C2B', line: '#D4BC8F' } as const;
 export const gold = { base: '#F2C94C', light: '#FFE58A', dark: '#B8860B' } as const;
 
 export type ButtonColor = 'green' | 'blue' | 'orange' | 'red' | 'disabled';

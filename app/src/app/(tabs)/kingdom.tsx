@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
@@ -50,7 +50,7 @@ function Tablet({ value, label }: { value: string | number; label: string }) {
       <StrokeText size="L" fontSize={24}>
         {String(value)}
       </StrokeText>
-      <Text style={styles.tabletLabel} numberOfLines={2}>
+      <Text style={styles.tabletLabel} numberOfLines={1}>
         {label}
       </Text>
     </StonePanel>
@@ -62,9 +62,14 @@ export default function KingdomScreen() {
   const set = useGame((s) => s.set);
   const { data, isLoading, error, refetch, isRefetching } = useKingdom();
   const stats = usePlayerStats();
+  const devPanel = useGame((s) => s.devPanelEnabled);
+  // Dev only: /kingdom?preview=15 shows the plant at a chosen health (for demos and docs).
+  const { preview } = useLocalSearchParams<{ preview?: string }>();
   if (!player) return null;
   const team = teams[player.team];
-  const mine = data?.teams[player.team];
+  const real = data?.teams[player.team];
+  const previewHealth = devPanel && preview != null && !Number.isNaN(Number(preview)) ? Math.max(0, Math.min(100, Number(preview))) : null;
+  const mine = real && previewHealth != null ? { ...real, health: previewHealth } : real;
 
   return (
     <GameScreen
@@ -93,6 +98,7 @@ export default function KingdomScreen() {
               />
             </View>
             <ChunkyProgress value={mine.health ?? 0} max={100} label={`${mine.health ?? '–'} / 100`} color={team.color} height={30} />
+            {previewHealth != null && <Text style={[styles.motto, { color: '#FFE58A' }]}>Preview (Dev Panel): health set to {previewHealth}</Text>}
             <Text style={styles.motto}>🌊 Healthy streams → 🐟 healthy animals → 🧑‍🤝‍🧑 healthy people</Text>
             {data.fixed_treasures > 0 && (
               <Text style={[styles.motto, { color: '#9BE59A' }]}>
@@ -102,9 +108,9 @@ export default function KingdomScreen() {
           </StonePanel>
 
           <View style={{ flexDirection: 'row', gap: 8 }}>
-            <Tablet value={mine.tiles} label="tiles held" />
-            <Tablet value={`${Math.round(mine.share * 100)}%`} label="of the stream" />
-            <Tablet value={data.my.checks_week} label="my checks" />
+            <Tablet value={mine.tiles} label="tiles" />
+            <Tablet value={`${Math.round(mine.share * 100)}%`} label="of stream" />
+            <Tablet value={data.my.checks_week} label="checks" />
             <Tablet value={stats.data?.confirmed_mine ?? 0} label="confirmed" />
           </View>
 
@@ -157,7 +163,7 @@ export default function KingdomScreen() {
 const styles = StyleSheet.create({
   hero: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center', gap: 6 },
   motto: { color: '#DCEFF2', fontFamily: 'Nunito_800ExtraBold', fontSize: 14, textAlign: 'center', marginTop: 8 },
-  tabletLabel: { color: '#DCEFF2', fontFamily: 'Nunito_700Bold', fontSize: 11, textAlign: 'center' },
+  tabletLabel: { color: '#DCEFF2', fontFamily: 'Nunito_700Bold', fontSize: 10.5, textAlign: 'center' },
   label: { fontFamily: 'Nunito_800ExtraBold', fontSize: 12, color: parchment.muted, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 },
   teamRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginVertical: 3 },
   teamName: { width: 86, fontFamily: 'LilitaOne_400Regular', fontSize: 15, color: parchment.text },

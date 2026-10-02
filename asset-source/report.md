@@ -1,11 +1,11 @@
 # Asset processing report
 
-Total processed image size: **12.57 MB** in `app/assets/images/`.
+Total processed image size: **9.72 MB** in `app/assets/images/`.
 
 | id | group | in | out | alpha ok | halo fix | islands removed | notes |
 |---|---|---|---|---|---|---|---|
 | app-icon | identity | 1024x1024 | icon 1024<br>adaptive 1024 (66%)<br>favicon 48 | yes | - | 0 |  |
-| splash-art | identity | 1024x1536 | 1024x1536 (no upscaling) | yes | - | 0 |  |
+| splash-art | identity | 1024x1536 | 1024x1536 PNG + JPEG (no upscaling) | yes | - | 0 |  |
 | game-bg-pattern | identity | 1024x1024 | 512<br>256 | yes | - | 0 |  |
 | emblem-otters | emblems | 1024x1024 | @1x 512x512 | yes | yes | 0 | @2x (1024px) skipped: source is only 837px<br>@3x (1536px) skipped: source is only 837px |
 | emblem-frogs | emblems | 1024x1024 | @1x 512x512 | yes | yes | 0 | @2x (1024px) skipped: source is only 843px<br>@3x (1536px) skipped: source is only 843px |

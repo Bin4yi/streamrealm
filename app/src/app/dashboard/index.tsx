@@ -7,9 +7,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { d, DButton, DText, Panel } from '@/components/dashboard/dash';
 import { LineChart } from '@/components/dashboard/LineChart';
+import { GameImage } from '@/components/kit/GameImage';
 import GameMap from '@/components/map/GameMap';
 import { FRESHNESS_STOPS, HEALTH_STOPS, type MapLayerMode } from '@/components/map/types';
 import { api, API_URL, photoUrl, useCities, useTiles, type TileProps } from '@/lib/api';
+import { Images } from '@/lib/assets';
 import { ago } from '@/lib/format';
 import { ANSWER_LABEL, QUESTION_IDS, QUESTION_LABEL, TREASURE_INFO, type Answers, type TreasureType } from '@/lib/gameRules';
 import { useGame } from '@/lib/store';
@@ -138,9 +140,12 @@ function ObsColumn({ title, o, other, warp }: { title: string; o: ObsView | null
   return (
     <View style={{ flex: 1, gap: 6, minWidth: 220 }}>
       <DText v="label">{title}</DText>
-      <DText v="h3">
-        {teams[o.team].emoji} {o.nickname} {o.is_bot ? <DText v="small">(demo bot)</DText> : null}
-      </DText>
+      <View style={styles.row}>
+        <GameImage src={Images.emblem[o.team]} size={24} fallback={teams[o.team].emoji} label={`Team ${teams[o.team].name}`} />
+        <DText v="h3">
+          {o.nickname} {o.is_bot ? <DText v="small">(demo bot)</DText> : null}
+        </DText>
+      </View>
       <DText v="small">
         {ago(daysAgo(o.created_at, warp))} · health {o.health_score}
       </DText>
@@ -295,7 +300,12 @@ export default function Dashboard() {
           <Panel title={`Dispute queue (${disputes.data?.length ?? 0})`} style={{ flex: 1, maxHeight: wide ? 640 : undefined }}>
             <DText v="small">Two checks disagree. Compare the photos and answers, then pick the side that is right. A third player check can also settle it.</DText>
             <ScrollView style={{ maxHeight: wide ? 540 : undefined }} contentContainerStyle={{ gap: 12 }}>
-              {disputes.data?.length === 0 && <DText v="small">No open disputes. 🎉</DText>}
+              {disputes.data?.length === 0 && (
+                <View style={{ alignItems: 'center', gap: 6, padding: 12 }}>
+                  <GameImage src={Images.moment.emptyPeace} size={110} fallback="🕊️" />
+                  <DText v="small">No open disputes.</DText>
+                </View>
+              )}
               {disputes.data?.map((dp) => (
                 <View key={dp.tile.id} style={styles.card}>
                   <View style={styles.row}>
@@ -328,15 +338,22 @@ export default function Dashboard() {
 
         <Panel title={`Treasure queue (${treasures.data?.filter((t) => t.status !== 'fixed').length ?? 0} open)`}>
           <DText v="small">Pipes, trash, wildlife, plants and algae that players found. Mark them as you work. “Fixed” raises the tile health (+15) and the kingdom health of the team that holds it.</DText>
+          {treasures.data?.length === 0 && (
+            <View style={{ alignItems: 'center', gap: 6, padding: 12 }}>
+              <GameImage src={Images.moment.emptyTreasures} size={120} fallback="🧰" />
+              <DText v="small">No treasures reported yet.</DText>
+            </View>
+          )}
           <View style={styles.treasures}>
             {treasures.data?.map((t) => (
               <View key={t.id} style={[styles.card, styles.treasure, t.status === 'fixed' && { opacity: 0.6 }]}>
                 <View style={styles.row}>
                   {t.photo ? <Image source={{ uri: photoUrl(t.photo)! }} style={styles.tphoto} contentFit="cover" /> : <View style={styles.tphoto} />}
                   <View style={{ flex: 1, gap: 2 }}>
-                    <DText v="h3">
-                      {TREASURE_INFO[t.type].emoji} {TREASURE_INFO[t.type].label}
-                    </DText>
+                    <View style={styles.row}>
+                      <GameImage src={Images.treasure[t.type]} size={24} fallback={TREASURE_INFO[t.type].emoji} />
+                      <DText v="h3">{TREASURE_INFO[t.type].label}</DText>
+                    </View>
                     <DText v="small" numberOfLines={1}>
                       {t.stream_name} {t.unsafe ? '· ⚠️ unsafe' : ''}
                     </DText>

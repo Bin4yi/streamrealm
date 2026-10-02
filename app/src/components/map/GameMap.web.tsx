@@ -137,15 +137,30 @@ export default function GameMap(props: GameMapProps) {
     mapRef.current = map;
 
     let usedFallback = false;
-    const fallback = () => {
-      if (usedFallback || readyRef.current) return;
+    let tilesTimer: ReturnType<typeof setTimeout> | undefined;
+    const fallback = (why: string) => {
+      if (usedFallback) return;
       usedFallback = true;
-      console.warn('[map] Vector style failed, using OSM raster tiles');
+      clearTimeout(tilesTimer);
+      console.warn(`[map] ${why}: using OpenStreetMap raster tiles`);
+      readyRef.current = false;
       map.setStyle(RASTER_FALLBACK);
     };
-    const fallbackTimer = setTimeout(fallback, 9000);
+    const fallbackTimer = setTimeout(() => !readyRef.current && fallback('Vector style did not load in 9 s'), 9000);
     map.on('error', (e) => {
-      if (!readyRef.current && String(e?.error?.message ?? '').match(/style|fetch|Failed/i)) fallback();
+      if (!readyRef.current && String(e?.error?.message ?? '').match(/style|fetch|Failed/i)) fallback('Vector style failed');
+    });
+    // The style can load while its tiles are very slow (seen with OpenFreeMap). Then switch too.
+    map.once('style.load', () => {
+      tilesTimer = setTimeout(() => {
+        let ok = true;
+        try {
+          ok = map.isSourceLoaded('openmaptiles'); // the base map source of the OpenFreeMap style
+        } catch {
+          ok = true; // another style without that source: leave it alone
+        }
+        if (!ok) fallback('Base map tiles did not arrive in 12 s');
+      }, 12000);
     });
 
     map.on('style.load', () => {
@@ -219,6 +234,7 @@ export default function GameMap(props: GameMapProps) {
     return () => {
       cancelAnimationFrame(raf);
       clearTimeout(fallbackTimer);
+      clearTimeout(tilesTimer);
       ro.disconnect();
       map.remove();
       mapRef.current = null;
