@@ -1,36 +1,54 @@
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 
-import { Card, Chip, ErrorBox, Row, Skeleton, Txt } from '@/components/ui/kit';
-import { Screen } from '@/components/ui/Screen';
+import { CoinLoader, GameButton, GameImage, GameScreen, StrokeText, WoodPanel } from '@/components/kit';
+import { ErrorBox } from '@/components/ui/kit';
 import { useLeaderboard, type LeaderRow } from '@/lib/api';
-import { avatarEmoji } from '@/lib/format';
+import { Images } from '@/lib/assets';
+import { avatarEmoji, avatarImage } from '@/lib/format';
 import { useGame } from '@/lib/store';
-import { colors, fonts, radius, space, teams } from '@/lib/theme';
+import { teams } from '@/lib/theme';
+import { ink, parchment, wood } from '@/theme/tokens';
 
-const MEDAL = ['🥇', '🥈', '🥉'];
+const SHIELD: Record<number, [string, string]> = { 1: ['#FFD54A', '#B8860B'], 2: ['#E3E7EA', '#8C99A3'], 3: ['#E0975A', '#8B5A2B'] };
+
+/** Rank in a shield drawn in code: gold, silver, bronze for 1-3, wood for the rest. */
+function RankShield({ rank }: { rank: number }) {
+  const [fill, edge] = SHIELD[rank] ?? [wood.light, wood.dark];
+  return (
+    <View style={{ width: 36, height: 40, alignItems: 'center', justifyContent: 'center' }}>
+      <Svg width={36} height={40} viewBox="0 0 36 40" style={StyleSheet.absoluteFill}>
+        <Path d="M18 2 L33 7 L33 20 C33 30 25 36 18 38 C11 36 3 30 3 20 L3 7 Z" fill={fill} stroke={ink.stroke} strokeWidth={2.5} />
+        <Path d="M18 6 L29 10 L29 20 C29 27 23 32 18 34 Z" fill={edge} opacity={0.35} />
+      </Svg>
+      <StrokeText size="S" fontSize={rank > 99 ? 11 : 15} align="center">
+        {String(rank)}
+      </StrokeText>
+    </View>
+  );
+}
 
 function PlayerRow({ r, me }: { r: LeaderRow; me: boolean }) {
   return (
     <View style={[styles.row, me && styles.meRow]}>
-      <Text style={styles.rank}>{r.rank <= 3 ? MEDAL[r.rank - 1] : r.rank}</Text>
-      <View style={[styles.avatar, { borderColor: teams[r.team].color }]}>
-        <Text style={{ fontSize: 18 }}>{avatarEmoji(r.avatar)}</Text>
-      </View>
-      <View style={{ flex: 1 }}>
-        <Row gap={6}>
-          <Txt v="label" numberOfLines={1}>
-            {r.nickname}
-          </Txt>
-          {me && <Txt v="small" style={{ color: colors.gold }}>(you)</Txt>}
-        </Row>
-        <Txt v="small">
-          {teams[r.team].emoji} {teams[r.team].name}
-          {r.is_bot ? ' · demo bot' : ''}
+      <RankShield rank={r.rank} />
+      <GameImage src={avatarImage(r.avatar)} size={40} fallback={avatarEmoji(r.avatar)} />
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Text style={styles.name} numberOfLines={1}>
+          {r.nickname}
+          {me ? ' (you)' : ''}
+        </Text>
+        <Text style={styles.sub} numberOfLines={1}>
+          {r.is_bot ? 'demo bot' : 'player'}
           {r.streak > 1 ? ` · 🔥${r.streak}` : ''}
-        </Txt>
+        </Text>
       </View>
-      <Text style={styles.pts}>{r.points}</Text>
+      <GameImage src={Images.emblem[r.team]} size={28} fallback={teams[r.team].emoji} />
+      {r.rank === 1 && <GameImage src={Images.effect.coinPile} size={28} fallback="🪙" />}
+      <StrokeText size="S" fontSize={18} style={{ minWidth: 44, textAlign: 'right' }}>
+        {String(r.points)}
+      </StrokeText>
     </View>
   );
 }
@@ -40,65 +58,65 @@ export default function LeaderboardScreen() {
   const myId = useGame((s) => s.player?.id);
   const { data, isLoading, error, refetch, isRefetching } = useLeaderboard(scope);
   const meInTop = data?.players.some((p) => p.id === myId);
+  // Podium order: 2nd, 1st, 3rd.
+  const podium = data ? [data.teams[1], data.teams[0], data.teams[2]].filter(Boolean) : [];
   return (
-    <Screen
-      title="Leaderboard"
-      subtitle="Points from checks, treasures and quests"
-      refreshing={isRefetching}
-      onRefresh={refetch}
-    >
-      <Row gap={6}>
-        <Chip label="This week" active={scope === 'week'} onPress={() => setScope('week')} color={colors.goldDeep} />
-        <Chip label="All time" active={scope === 'all'} onPress={() => setScope('all')} color={colors.goldDeep} />
-      </Row>
+    <GameScreen title="LEADERBOARD" refreshing={isRefetching} onRefresh={refetch}>
+      <View style={{ flexDirection: 'row', gap: 10, justifyContent: 'center' }}>
+        <GameButton size="S" label="THIS WEEK" color={scope === 'week' ? 'orange' : 'blue'} onPress={() => setScope('week')} />
+        <GameButton size="S" label="ALL TIME" color={scope === 'all' ? 'orange' : 'blue'} onPress={() => setScope('all')} />
+      </View>
       {error && <ErrorBox message={(error as Error).message} onRetry={refetch} />}
       {isLoading || !data ? (
-        <View style={{ gap: space.md }}>
-          <Skeleton height={110} />
-          <Skeleton height={300} />
-        </View>
+        <CoinLoader label="Counting coins…" />
       ) : (
         <>
-          <Row gap={space.sm} style={{ alignItems: 'flex-end' }}>
-            {data.teams.map((t, i) => (
-              <Card key={t.team} padded={false} style={[styles.team, { borderColor: teams[t.team].color, paddingVertical: i === 0 ? space.lg : space.md }]}>
-                <Text style={{ fontSize: i === 0 ? 34 : 26 }}>{teams[t.team].emoji}</Text>
-                <Txt v="label">{teams[t.team].name}</Txt>
-                <Text style={[styles.teamPts, { color: teams[t.team].soft }]}>{t.points}</Text>
-                <Txt v="small">{t.tiles} tiles</Txt>
-                {i === 0 && <Text style={styles.crown}>👑</Text>}
-              </Card>
-            ))}
-          </Row>
-          <Card padded={false} style={{ paddingVertical: space.sm }}>
+          <View style={styles.podium}>
+            {podium.map((t) => {
+              const place = data.teams.indexOf(t) + 1;
+              const h = place === 1 ? 92 : place === 2 ? 66 : 48;
+              return (
+                <View key={t.team} style={{ flex: 1, alignItems: 'center' }}>
+                  {place === 1 && <Text style={{ fontSize: 26 }}>👑</Text>}
+                  <GameImage src={Images.emblem[t.team]} size={place === 1 ? 72 : 58} fallback={teams[t.team].emoji} />
+                  <StrokeText size="S" fontSize={14} align="center">
+                    {teams[t.team].name}
+                  </StrokeText>
+                  <View style={[styles.step, { height: h, backgroundColor: teams[t.team].color }]}>
+                    <StrokeText size="M" fontSize={20} align="center">
+                      {String(t.points)}
+                    </StrokeText>
+                    <Text style={styles.stepSub}>{t.tiles} tiles</Text>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+          <WoodPanel contentStyle={{ padding: 6, gap: 2 }}>
             {data.players.map((r) => (
               <PlayerRow key={r.id} r={r} me={r.id === myId} />
             ))}
-            {!meInTop && data.me && (
-              <>
-                <Txt v="small" style={{ textAlign: 'center' }}>
-                  ⋯
-                </Txt>
-                <PlayerRow r={data.me} me />
-              </>
-            )}
-          </Card>
-          <Txt v="small" style={{ textAlign: 'center' }}>
-            Demo bots are part of the seeded demo world so the map feels alive.
-          </Txt>
+          </WoodPanel>
+          {!meInTop && data.me && (
+            <WoodPanel border={8} contentStyle={{ padding: 6 }}>
+              <PlayerRow r={data.me} me />
+            </WoodPanel>
+          )}
+          <StrokeText size="S" align="center">
+            Demo bots keep the demo world alive.
+          </StrokeText>
         </>
       )}
-    </Screen>
+    </GameScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  team: { flex: 1, alignItems: 'center', gap: 2, borderWidth: 2 },
-  teamPts: { fontFamily: fonts.titleBlack, fontSize: 20 },
-  crown: { position: 'absolute', top: -14, fontSize: 22 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingHorizontal: space.md, paddingVertical: 8 },
-  meRow: { backgroundColor: 'rgba(242,201,76,0.12)', borderRadius: radius.md },
-  rank: { width: 28, textAlign: 'center', fontFamily: fonts.titleBlack, fontSize: 16, color: colors.textMuted },
-  avatar: { width: 36, height: 36, borderRadius: 18, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
-  pts: { fontFamily: fonts.titleBlack, fontSize: 17, color: colors.gold },
+  podium: { flexDirection: 'row', alignItems: 'flex-end', gap: 8 },
+  step: { width: '100%', marginTop: 4, borderTopLeftRadius: 12, borderTopRightRadius: 12, borderWidth: 3, borderColor: ink.stroke, alignItems: 'center', justifyContent: 'center' },
+  stepSub: { color: '#FFFFFF', fontFamily: 'Nunito_800ExtraBold', fontSize: 12 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 4, paddingHorizontal: 6, borderRadius: 12 },
+  meRow: { backgroundColor: '#FCE9A9', borderWidth: 2, borderColor: '#B8860B' },
+  name: { fontFamily: 'LilitaOne_400Regular', fontSize: 16, color: parchment.text },
+  sub: { fontFamily: 'Nunito_700Bold', fontSize: 12, color: parchment.muted },
 });

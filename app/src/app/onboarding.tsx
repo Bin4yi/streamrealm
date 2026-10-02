@@ -1,12 +1,13 @@
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, { FadeInRight, FadeOutLeft, runOnJS, useAnimatedStyle, useSharedValue, withRepeat, withSequence, withSpring, withTiming } from 'react-native-reanimated';
+import Animated, { FadeInRight, FadeOutLeft, runOnJS, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { Mascot } from '@/components/game/Mascot';
 import { GameButton, GameImage, RewardBurst, StrokeText, WoodPanel } from '@/components/kit';
 import { PhoneFrame } from '@/components/ui/PhoneFrame';
 import { api, type Player } from '@/lib/api';
@@ -14,7 +15,7 @@ import { Images } from '@/lib/assets';
 import { AVATAR_IDS, AVATARS, avatarImage } from '@/lib/format';
 import { useGame } from '@/lib/store';
 import { teamIds, teams, type TeamId } from '@/lib/theme';
-import { spring, useMotionOK } from '@/theme/motion';
+import { spring } from '@/theme/motion';
 import { bodyFont, bodyFontHeavy, gold, ink, parchment } from '@/theme/tokens';
 
 const CARDS = [
@@ -37,23 +38,6 @@ const CARDS = [
     lines: ['Never go into the water. Stay on public paths.', 'Skip any place that feels unsafe.', 'Kids: play with an adult. Use a nickname.'],
   },
 ];
-export const MASCOT: Record<TeamId, keyof typeof Images.mascot> = { otters: 'otter', frogs: 'frog', kingfishers: 'kingfisher' };
-
-/** Team mascot that gently "breathes" (off with reduced motion). */
-export function Mascot({ team, size }: { team: TeamId; size: number }) {
-  const motion = useMotionOK();
-  const s = useSharedValue(1);
-  useEffect(() => {
-    if (motion) s.set(withRepeat(withSequence(withTiming(1.03, { duration: 1400 }), withTiming(1, { duration: 1400 })), -1));
-  }, [motion, s]);
-  const a = useAnimatedStyle(() => ({ transform: [{ scale: s.value }] }));
-  return (
-    <Animated.View style={a}>
-      <GameImage src={Images.mascot[MASCOT[team]]} id={`mascot-${MASCOT[team]}`} size={size} fallback={teams[team].emoji} />
-    </Animated.View>
-  );
-}
-
 function TeamCard({ id, selected, onPress }: { id: TeamId; selected: boolean; onPress: () => void }) {
   const t = teams[id];
   const lift = useAnimatedStyle(() => ({ transform: [{ translateY: withSpring(selected ? -10 : 0, spring.pop) }, { scale: withSpring(selected ? 1.04 : 1, spring.pop) }] }), [selected]);
