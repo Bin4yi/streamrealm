@@ -60,7 +60,7 @@ export function healthScore(answers: Partial<Answers>): number {
   return Math.max(0, Math.min(100, 100 - total));
 }
 
-/** Agreement between two checks over the 6 answers, 0..1 (same as the server). */
+/** Agreement between two checks over the 6 answers, 0..1, rounded to 2 decimals (same as the server), so 4 of 6 = 0.67. */
 export function agreement(a: Partial<Answers>, b: Partial<Answers>): number {
   let score = 0;
   for (const q of QUESTION_IDS) {
@@ -73,7 +73,7 @@ export function agreement(a: Partial<Answers>, b: Partial<Answers>): number {
       if (Math.abs(values.indexOf(va) - values.indexOf(vb)) === 1) score += 0.5;
     }
   }
-  return Math.round((score / QUESTION_IDS.length) * 10000) / 10000;
+  return Math.round((score / QUESTION_IDS.length) * 100) / 100;
 }
 
 const DAY_MS = 86_400_000;

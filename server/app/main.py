@@ -7,14 +7,22 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
+from sqlmodel import Session, select
+
 from . import config
-from .db import init_db
-from .routes import world
+from .db import engine, init_db
+from .models import Player
+from .routes import dev, play, world
+from .services.bots import seed_world
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
+    if config.SEED_DEMO:
+        with Session(engine) as session:
+            if not session.exec(select(Player).where(Player.is_bot == True)).first():  # noqa: E712
+                seed_world(session)
     yield
 
 
@@ -28,6 +36,8 @@ app.add_middleware(
 app.mount("/uploads", StaticFiles(directory=config.UPLOAD_DIR), name="uploads")
 app.mount("/demo-photos", StaticFiles(directory=config.DEMO_PHOTO_DIR), name="demo-photos")
 app.include_router(world.router)
+app.include_router(play.router)
+app.include_router(dev.router)
 
 
 @app.get("/health")

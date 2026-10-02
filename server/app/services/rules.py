@@ -76,6 +76,7 @@ def agreement(a: dict[str, str], b: dict[str, str]) -> float:
     """Agreement between two checks over the 6 answers, 0..1.
 
     Same answer = 1. Neighbouring values on an ordered scale (foam, trash, overall) = 0.5.
+    Rounded to 2 decimals, so 4 of 6 equal answers = 0.67 and passes the threshold.
     """
     score = 0.0
     for q, values in QUESTIONS.items():
@@ -86,7 +87,7 @@ def agreement(a: dict[str, str], b: dict[str, str]) -> float:
             score += 1
         elif q in ORDINAL and va in values and vb in values and abs(values.index(va) - values.index(vb)) == 1:
             score += 0.5
-    return round(score / len(QUESTIONS), 4)
+    return round(score / len(QUESTIONS), 2)
 
 
 def tile_state(last_check_at: Optional[datetime], dispute_open: bool, now: datetime) -> str:

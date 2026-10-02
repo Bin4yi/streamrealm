@@ -110,6 +110,8 @@ export default function GameMap(props: GameMapProps) {
         }
       }
       addGameLayers(map);
+      // Start with the attribution collapsed to its (i) button so it does not cover the game buttons.
+      map.getContainer().querySelector('.maplibregl-ctrl-attrib')?.classList.remove('maplibregl-compact-show');
       readyRef.current = true;
       syncData(map, propsRef.current);
       syncMarkers();

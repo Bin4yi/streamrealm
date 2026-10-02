@@ -23,6 +23,7 @@ Small choices made while building, so reviewers can see why.
 | Datetimes | All server times are timezone-aware UTC. | SQLModel 0.0.47 rejects naive datetimes. |
 | Avatars | Emoji avatars (otter, frog, bird, swan, butterfly, fish, turtle, beaver). | No copyrighted art; works on every platform. |
 | Agreement score | Exact match = 1. Neighbouring values on the ordered scales (foam, trash, overall) = 0.5. Average over 6 answers. | "A little" vs "A lot" of foam is a closer call than "None" vs "A lot". |
+| Agreement rounding | The score is rounded to 2 decimals before comparing with 0.67. | Without rounding, 4 of 6 equal answers is 0.6667 and fails, which is not what "0.67 = two thirds" means. Found by a unit test. |
 | Dispute tie | If the third check agrees equally with both sides, the defender keeps the tile. | The attacker has not proven a change. |
 | Attack points | Attack points (+30) are paid only when the attack wins (now or after the dispute is settled). | Stops "spam attacks" that only create disputes. |
 | Unsafe tiles | Unsafe tiles cannot be checked (button disabled, server rejects). | Safety first. So they also give no points. |

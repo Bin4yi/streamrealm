@@ -4,12 +4,22 @@ from __future__ import annotations
 import json
 from collections.abc import Iterator
 
+from sqlalchemy import event
 from sqlmodel import Session, SQLModel, create_engine, select
 
 from . import config
 from .models import Tile, TileState
 
 engine = create_engine(config.DB_URL, connect_args={"check_same_thread": False})
+
+
+@event.listens_for(engine, "connect")
+def _sqlite_pragmas(dbapi_conn, _record):
+    if config.DB_URL.startswith("sqlite"):
+        cur = dbapi_conn.cursor()
+        cur.execute("PRAGMA journal_mode=WAL")
+        cur.execute("PRAGMA synchronous=NORMAL")
+        cur.close()
 
 
 def get_session() -> Iterator[Session]:

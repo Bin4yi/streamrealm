@@ -86,6 +86,9 @@ class Observation(SQLModel, table=True):
     # draft -> (pending | confirmed | disputed | rejected)
     status: str = Field(default="draft", index=True)
     action: Optional[str] = None  # explore | claim_neutral | refresh | attack | confirm_dispute
+    # claimed | refreshed | defended | attack_won | dispute_started | dispute_settled
+    outcome: Optional[str] = Field(default=None, index=True)
+    storm: bool = False
     points: int = 0
     points_breakdown_json: str = "[]"
     confirmed_by_observation_id: Optional[str] = None
@@ -93,6 +96,7 @@ class Observation(SQLModel, table=True):
     client_lon: Optional[float] = None
     distance_m: Optional[float] = None
     is_demo: bool = False
+    treasure_json: str = "{}"  # draft treasure {"type": ..., "photo": ...} until the check is final
 
     def answers(self) -> dict[str, Any]:
         return json.loads(self.answers_json or "{}")
