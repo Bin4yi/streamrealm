@@ -31,7 +31,7 @@ sequenceDiagram
   participant G as Game engine
   P->>S: POST /observations (2 photos or demo, answers, position)
   S->>S: unsafe? distance <= 40 m? answers valid?
-  S->>A: blur, light, pHash duplicates, EXIF time (+ Claude vision if key)
+  S->>A: blur, light, pHash duplicates, EXIF time (+ OpenAI vision if key)
   A-->>S: verdict pass/warn/fail, reasons, suggestions
   S-->>P: draft observation + photo check (nothing counts yet)
   P->>P: player keeps or accepts each suggestion
@@ -68,7 +68,7 @@ Times are timezone-aware UTC. The game clock is `now + time_warp_days`; every re
 ## Photo check (`services/ai_check.py`)
 
 - Always on: blur (variance of the Laplacian, warn < 60), too dark (< 40) or bright (> 225), **re-used photo** (perceptual hash; distance ≤ 2 to any counted photo = **fail**, ≤ 8 = warn), EXIF capture time older than 24 h (warn; missing EXIF is normal for web uploads and is neutral), both photos identical (warn). A simple colour rule suggests the water colour at 35% confidence and says it is not AI.
-- AI mode (only with `ANTHROPIC_API_KEY`): both photos + the answers go to Claude with a strict JSON schema (structured outputs). Suggestions are re-checked against the allowed values; smell is never suggested (you cannot smell a photo). Any error, refusal or timeout (8 s) → heuristic result, with `ai_error` noted.
+- AI mode (only with `OPENAI_API_KEY`): both photos + the answers go to OpenAI (`gpt-6-luna` by default, Responses API, low reasoning effort) with a strict JSON schema (structured outputs). Suggestions are re-checked against the allowed values; smell is never suggested (you cannot smell a photo). Any error, refusal or timeout (8 s) → heuristic result, with `ai_error` noted.
 - `fail` only for a re-used photo or "not a stream photo". Suggestions never change answers.
 - Uploads are re-saved as JPEG **without EXIF** (GPS removed), max 1600 px.
 

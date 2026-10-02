@@ -19,7 +19,7 @@ shutil.copy(SERVER / "data" / "tiles" / "coimbra.geojson", _TMP / "tiles" / "coi
 os.environ["STREAMREALM_DATA_DIR"] = str(_TMP)
 os.environ["STREAMREALM_DB_URL"] = f"sqlite:///{(_TMP / 'test.db').as_posix()}"
 os.environ["STREAMREALM_SEED_DEMO"] = "0"
-os.environ["ANTHROPIC_API_KEY"] = ""
+os.environ["OPENAI_API_KEY"] = ""
 sys.path.insert(0, str(SERVER))
 
 from fastapi.testclient import TestClient  # noqa: E402

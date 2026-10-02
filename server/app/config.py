@@ -14,10 +14,10 @@ EXPERIMENT_DIR = DATA_DIR / "experiment"
 CITIES_FILE = DATA_DIR / "cities.json"
 DB_URL = os.environ.get("STREAMREALM_DB_URL", f"sqlite:///{(DATA_DIR / 'streamrealm.db').as_posix()}")
 
-ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "").strip()
-# Default from the claude-api skill's current model table (2026-10). Override with ANTHROPIC_MODEL,
-# e.g. ANTHROPIC_MODEL=claude-haiku-4-5 for a cheaper, faster check.
-ANTHROPIC_MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-opus-5").strip()
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "").strip()
+# gpt-6-luna: OpenAI's most efficient current model with image input + structured outputs
+# (developers.openai.com/api/docs/models, checked 2026-10). Override with OPENAI_MODEL, e.g. gpt-6.1-sol.
+OPENAI_MODEL = os.environ.get("OPENAI_MODEL", "gpt-6-luna").strip()
 AI_TIMEOUT_S = float(os.environ.get("AI_TIMEOUT_S", "8"))
 
 # Set to "0" to start with an empty world (no bots).

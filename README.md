@@ -22,7 +22,7 @@ StreamRealm is a territory game (like Pokémon GO or Ingress) for the **OneAquaH
 
 It also touches three other tracks:
 
-- **Track 3, AI with a human in the loop.** Every check runs a photo check: blur, light, re-used photos, photo age, and (with an API key) Claude vision suggestions. The AI never changes an answer. The player sees chips like "AI thinks: a little foam (70%). Why? …" and taps **Use this** or **Keep mine**. Both answers are stored, so disagreement between people and AI is measurable.
+- **Track 3, AI with a human in the loop.** Every check runs a photo check: blur, light, re-used photos, photo age, and (with an OpenAI API key) AI vision suggestions. The AI never changes an answer. The player sees chips like "AI thinks: a little foam (70%). Why? …" and taps **Use this** or **Keep mine**. Both answers are stored, so disagreement between people and AI is measurable.
 - **Track 6, storm events.** A **Storm Quest** starts when the Open-Meteo forecast shows 10 mm of rain or more in the next 48 h. All points are doubled, because after heavy rain sewers can overflow and data is most valuable.
 - **Track 7, interoperability.** One click exports a **FHIR R4 Bundle** that uses the profiles of the HL7 Europe OneAquaHealth IG (`LocationOah`, `ObservationIndicatorsOah`). We checked it with the official HL7 validator: **0 errors** (details in [docs/architecture.md](docs/architecture.md#fhir-export)).
 
@@ -90,7 +90,7 @@ flowchart LR
   end
   subgraph Server["FastAPI server"]
     Rules["Game engine<br/>rules.py, game.py"]
-    AI["Photo check<br/>heuristics + optional Claude vision"]
+    AI["Photo check<br/>heuristics + optional OpenAI vision"]
     Bots["Demo bots<br/>seeded history + live moves"]
     Exp["Exports<br/>CSV, GeoJSON, FHIR R4"]
     DB[("SQLite<br/>SQLModel")]
@@ -98,7 +98,7 @@ flowchart LR
   OSM["OpenStreetMap<br/>Overpass API"] -->|fetch_streams.py + build_tiles.py| Tiles["359 tiles (GeoJSON, committed)"]
   Tiles --> DB
   Meteo["Open-Meteo forecast"] -->|Storm Quest| Rules
-  Claude["Anthropic API (optional)"] -.-> AI
+  OpenAI["OpenAI API (optional)"] -.-> AI
   UI <-->|JSON + photo upload| Rules
   Dash <--> Exp
   Rules <--> DB
@@ -110,7 +110,7 @@ flowchart LR
 **Tech stack**
 
 - **App:** Expo SDK 57, TypeScript, expo-router, zustand, TanStack Query, react-native-reanimated, MapLibre GL JS 5 (web), react-native-maps (native), Turf, react-native-svg, Cinzel + Nunito fonts.
-- **Server:** Python 3.11+ (tested on 3.14), FastAPI, SQLModel + SQLite, Pillow, ImageHash, OpenCV, Shapely, httpx, Anthropic SDK (optional), matplotlib.
+- **Server:** Python 3.11+ (tested on 3.14), FastAPI, SQLModel + SQLite, Pillow, ImageHash, OpenCV, Shapely, httpx, OpenAI SDK (optional), matplotlib.
 - **Tests:** Jest (17 game-rule tests), pytest (27 tests), an API smoke test, and a Playwright screenshot run.
 
 More detail: [docs/architecture.md](docs/architecture.md) · rules and numbers: [docs/game-design.md](docs/game-design.md) · choices: [docs/DECISIONS.md](docs/DECISIONS.md).
@@ -149,8 +149,8 @@ On first start the server creates `server/data/streamrealm.db` and seeds the dem
 | Variable | Default | What it does |
 |---|---|---|
 | `EXPO_PUBLIC_API_URL` | `http://localhost:8000` (Android emulator: `http://10.0.2.2:8000`) | Where the app finds the server |
-| `ANTHROPIC_API_KEY` | empty | Turns on the Claude vision photo check. Without it, heuristics only. Nothing breaks. |
-| `ANTHROPIC_MODEL` | `claude-opus-5` | Model for the photo check, e.g. `claude-haiku-4-5` for faster, cheaper checks |
+| `OPENAI_API_KEY` | empty | Turns on the AI vision photo check (OpenAI). Without it, heuristics only. Nothing breaks. |
+| `OPENAI_MODEL` | `gpt-6-luna` | Model for the photo check (fast, low cost). `gpt-6.1-sol` or `gpt-6-astra` for stronger checks |
 | `AI_TIMEOUT_S` | `8` | After this, the check falls back to heuristics |
 | `STREAMREALM_SEED_DEMO` | `1` | `0` starts with an empty world |
 | `STREAMREALM_SEED_CITY` | `coimbra` | The only city where demo bots play |
@@ -211,7 +211,7 @@ More in [docs/safety.md](docs/safety.md).
 - **No real pilot yet.** All demo activity comes from bots.
 - **OneAquaHealth research sites are not shown.** The OneAquaHealth Resilience Map API (`api.enora-oah.eu`, used by apps.oneaquahealth.eu) needs a login (HTTP 401), so we did not add "Research Outposts" and did not invent site data.
 - **FHIR alignment is partial.** The IG has no profile for citizen visual checks, and its observation profile fixes `status = final`, so unconfirmed checks are exported as base R4 `preliminary` Observations. Many answer codes are local (`urn:streamrealm:*`). The IG CI page (build.fhir.org/ig/hl7-eu/oah) returned 404 during the hackathon, so we built the profiles from the IG source with SUSHI to validate.
-- **The Claude vision mode was not tested with a live key** during the build (no key in the build environment). The fallback path is tested: missing key, timeout and errors all return the heuristic check.
+- **The OpenAI vision mode was not tested with a live key** during the build (no key in the build environment). The fallback path is tested: missing key, timeout and errors all return the heuristic check.
 - **The heuristic photo check is simple.** It catches blur, bad light, re-used photos and old EXIF times. It cannot tell if a photo really shows a stream; only the AI mode can.
 - **No accounts.** The player id lives in the browser's local storage. Anyone with the id could act as that player. Fine for a demo, not for production.
 - **Native apps were not run on a device.** The Android bundle builds (`npx expo export --platform android`), but we had no phone or emulator. On this Windows machine, Hermes bytecode needed `--no-bytecode`. The native map is simpler than the web map (no glow or animations).
@@ -229,7 +229,7 @@ More in [docs/safety.md](docs/safety.md).
 
 ## 12. AI assistance disclosure
 
-StreamRealm was built during the hackathon with help from **Claude Code** (Anthropic), which wrote most of the code, tests and docs under human direction. The optional in-app photo check uses the Claude API.
+StreamRealm was built during the hackathon with help from **Claude Code** (Anthropic), which wrote most of the code, tests and docs under human direction. The optional in-app photo check uses the OpenAI API.
 
 ## 13. License
 

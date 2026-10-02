@@ -47,4 +47,4 @@ app.include_router(dev.router)
 
 @app.get("/health")
 def health():
-    return {"ok": True, "ai_mode": "ai" if config.ANTHROPIC_API_KEY else "heuristic"}
+    return {"ok": True, "ai_mode": "ai" if config.OPENAI_API_KEY else "heuristic"}

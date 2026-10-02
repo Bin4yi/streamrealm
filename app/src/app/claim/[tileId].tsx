@@ -362,7 +362,7 @@ export default function ClaimScreen() {
             <Text style={{ fontSize: 28 }}>{verdictStyle.icon}</Text>
             <View style={{ flex: 1 }}>
               <Txt v="h3">{verdictStyle.title}</Txt>
-              <Txt v="small">{ai.mode === 'ai' ? 'Checked by Claude AI + photo rules' : 'Checked by photo rules (AI is off)'}</Txt>
+              <Txt v="small">{ai.mode === 'ai' ? 'Checked by AI (OpenAI) + photo rules' : 'Checked by photo rules (AI is off)'}</Txt>
             </View>
           </Row>
           {ai.reasons.map((r) => (

@@ -1,4 +1,4 @@
-"""Photo check: always-on heuristics, plus Claude vision when ANTHROPIC_API_KEY is set.
+"""Photo check: always-on heuristics, plus OpenAI vision when OPENAI_API_KEY is set.
 
 Rules: "fail" only for "not a stream photo" or an exact duplicate photo. Everything else
 is at most "warn". Suggestions never change the player's answers; the player decides.
@@ -105,7 +105,7 @@ def heuristic(session: Session, shots: list[CheckPhoto], answers: dict[str, str]
     return {"verdict": verdict, "reasons": reasons, "suggestions": suggestions, "notable": [], "checks": checks, "mode": "heuristic"}
 
 
-# ---------- Claude vision ----------
+# ---------- OpenAI vision ----------
 
 PROMPT = """You help a citizen-science game about city streams. A player took two photos of the same
 stream spot (upstream and downstream) and answered 5 simple questions plus an overall feeling.
@@ -163,25 +163,23 @@ def _b64(img: Image.Image) -> str:
     return base64.b64encode(buf.getvalue()).decode()
 
 
-def claude_vision(shots: list[CheckPhoto], answers: dict[str, str]) -> dict:
-    import anthropic
+def openai_vision(shots: list[CheckPhoto], answers: dict[str, str]) -> dict:
+    """OpenAI Responses API: both photos + answers in, strict JSON schema out."""
+    from openai import OpenAI
 
-    client = anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY, timeout=config.AI_TIMEOUT_S, max_retries=0)
+    client = OpenAI(api_key=config.OPENAI_API_KEY, timeout=config.AI_TIMEOUT_S, max_retries=0)
     content: list[dict] = []
     for label, shot in zip(("Upstream photo:", "Downstream photo:"), shots):
-        content.append({"type": "text", "text": label})
-        content.append({"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": _b64(shot.image)}})
-    content.append({"type": "text", "text": PROMPT.format(answers=json.dumps(answers))})
-    resp = client.messages.create(
-        model=config.ANTHROPIC_MODEL,
-        max_tokens=2000,
-        messages=[{"role": "user", "content": content}],
-        output_config={"effort": "low", "format": {"type": "json_schema", "schema": SCHEMA}},
+        content.append({"type": "input_text", "text": label})
+        content.append({"type": "input_image", "image_url": f"data:image/jpeg;base64,{_b64(shot.image)}"})
+    content.append({"type": "input_text", "text": PROMPT.format(answers=json.dumps(answers))})
+    resp = client.responses.create(
+        model=config.OPENAI_MODEL,
+        input=[{"role": "user", "content": content}],
+        reasoning={"effort": "low"},
+        text={"format": {"type": "json_schema", "name": "stream_photo_check", "schema": SCHEMA, "strict": True}},
     )
-    if resp.stop_reason == "refusal":
-        raise RuntimeError("model refused")
-    text = next(b.text for b in resp.content if b.type == "text")
-    data = json.loads(text)
+    data = json.loads(resp.output_text)
     # Strict post-validation: drop anything outside the allowed values.
     clean = []
     for s in data.get("suggestions", []):
@@ -198,10 +196,10 @@ def claude_vision(shots: list[CheckPhoto], answers: dict[str, str]) -> dict:
 
 def run_check(session: Session, shots: list[CheckPhoto], answers: dict[str, str]) -> dict:
     result = heuristic(session, shots, answers)
-    if not config.ANTHROPIC_API_KEY or all(s.is_demo for s in shots):
+    if not config.OPENAI_API_KEY or all(s.is_demo for s in shots):
         return result
     try:
-        ai = claude_vision(shots, answers)
+        ai = openai_vision(shots, answers)
     except Exception as err:  # timeout, network, bad JSON, refusal: keep the heuristic result
         log.warning("AI check failed, using heuristics: %s", err)
         result["ai_error"] = type(err).__name__

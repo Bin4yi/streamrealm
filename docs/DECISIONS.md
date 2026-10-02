@@ -7,7 +7,7 @@ Small choices made while building, so reviewers can see why.
 1. Skeleton + real map (Expo web + MapLibre, FastAPI, OSM tiles, Dev Panel).
 2. Core loop (onboarding, stream check, points, fading, Time Warp).
 3. Multiplayer feel (bots, attacks, disputes, treasures, quests, Storm Quest, kingdom).
-4. Scientist dashboard, exports (CSV, GeoJSON, FHIR), Claude vision mode.
+4. Scientist dashboard, exports (CSV, GeoJSON, FHIR), AI vision mode.
 5. Coverage experiment, polish, docs.
 
 ## Decisions
@@ -28,7 +28,7 @@ Small choices made while building, so reviewers can see why.
 | Attack points | Attack points (+30) are paid only when the attack wins (now or after the dispute is settled). | Stops "spam attacks" that only create disputes. |
 | Unsafe tiles | Unsafe tiles cannot be checked (button disabled, server rejects). | Safety first. So they also give no points. |
 | Identity | No login. The app keeps the player id in local storage. | Prototype. Noted in README Limitations. |
-| Claude model | `claude-opus-5` by default (`ANTHROPIC_MODEL` to override, e.g. `claude-haiku-4-5` for speed/cost). | Default from the Claude API reference used during the build. |
+| AI model | OpenAI `gpt-6-luna` by default (`OPENAI_MODEL` to override). Responses API, image input, strict JSON schema, reasoning effort low. | Team request to use OpenAI. Luna is OpenAI's most efficient current model with image input and structured outputs (checked on developers.openai.com, 2026-10); a photo check needs speed and low cost more than deep reasoning. |
 | OneAquaHealth research sites | Not shown. | `api.enora-oah.eu` (used by apps.oneaquahealth.eu) answers 401 without login. We did not invent site data. |
 | FHIR IG | Profiles read from the IG source on GitHub (`hl7-eu/oah`, `input/fsh`). | `build.fhir.org/ig/hl7-eu/oah/` returned 404 during the hackathon. |
 | Two-step check | `POST /observations` makes a draft with the photo check; `POST /observations/{id}/confirm-ai` applies the rules with the final answers. | The player must see the photo check and decide before anything counts. Both answer sets are stored. |

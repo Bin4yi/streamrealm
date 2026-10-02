@@ -140,12 +140,56 @@ def test_ai_falls_back_without_key(session):
 def test_ai_error_falls_back(monkeypatch, session):
     from app.services import ai_check
 
-    monkeypatch.setattr(config, "ANTHROPIC_API_KEY", "sk-test")
+    monkeypatch.setattr(config, "OPENAI_API_KEY", "sk-test")
 
     def boom(*a, **k):
         raise TimeoutError("slow")
 
-    monkeypatch.setattr(ai_check, "claude_vision", boom)
+    monkeypatch.setattr(ai_check, "openai_vision", boom)
     img = Image.new("RGB", (64, 64), (80, 120, 160))
     res = ai_check.run_check(session, [ai_check.CheckPhoto("x.jpg", img, None), ai_check.CheckPhoto("y.jpg", img, None)], CLEAN)
     assert res["mode"] == "heuristic" and res["ai_error"] == "TimeoutError"
+
+
+def test_openai_vision_request_and_parsing(monkeypatch, session):
+    """Fake OpenAI client: checks the Responses API request shape and our strict parsing."""
+    import json as _json
+    import types
+
+    import openai
+
+    from app.services import ai_check
+
+    seen = {}
+
+    class FakeResponses:
+        def create(self, **kw):
+            seen.update(kw)
+            out = {
+                "is_stream_photo": True,
+                "suggestions": [
+                    {"question": "foam", "value": "a_little", "confidence": 0.7, "why": "White bubbles near the bank"},
+                    {"question": "smell", "value": "bad", "confidence": 0.9, "why": "cannot smell a photo"},
+                    {"question": "color", "value": "purple", "confidence": 0.5, "why": "not an allowed value"},
+                ],
+                "notable": ["Possible pipe on the left bank"],
+                "reasons": [],
+            }
+            return types.SimpleNamespace(output_text=_json.dumps(out))
+
+    class FakeClient:
+        def __init__(self, **kw):
+            self.responses = FakeResponses()
+
+    monkeypatch.setattr(openai, "OpenAI", FakeClient)
+    monkeypatch.setattr(config, "OPENAI_API_KEY", "sk-test")
+    img = Image.new("RGB", (64, 64), (80, 120, 160))
+    res = ai_check.run_check(session, [ai_check.CheckPhoto("x.jpg", img, None), ai_check.CheckPhoto("y.jpg", img, None)], CLEAN)
+    assert res["mode"] == "ai"
+    assert [s["question"] for s in res["suggestions"]] == ["foam"]  # smell and invalid values dropped
+    assert res["notable"] == ["Possible pipe on the left bank"]
+    assert seen["model"] == config.OPENAI_MODEL
+    assert seen["text"]["format"]["type"] == "json_schema" and seen["text"]["format"]["strict"] is True
+    parts = seen["input"][0]["content"]
+    assert sum(p["type"] == "input_image" for p in parts) == 2
+    assert all(p["image_url"].startswith("data:image/jpeg;base64,") for p in parts if p["type"] == "input_image")
