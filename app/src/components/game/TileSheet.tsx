@@ -9,6 +9,7 @@ import { photoUrl, useTile } from '@/lib/api';
 import { ago, avatarEmoji, inDays } from '@/lib/format';
 import { ANSWER_LABEL, CLAIM_RADIUS_M, FADING_DAYS, FRESH_DAYS, STATE_LABEL, TREASURE_INFO } from '@/lib/gameRules';
 import { formatDistance } from '@/lib/geo';
+import { useGame } from '@/lib/store';
 import { colors, fonts, radius, space, teams } from '@/lib/theme';
 
 export const HEALTH_DISCLAIMER =
@@ -37,6 +38,7 @@ export function TileSheet({
   onTeleport?: () => void;
 }) {
   const { data, isLoading, error } = useTile(tileId);
+  const myId = useGame((st) => st.player?.id);
   const y = useSharedValue(400);
   useEffect(() => {
     y.value = 400;
@@ -182,6 +184,8 @@ export function TileSheet({
               <View style={{ gap: space.sm, marginTop: space.xs }}>
                 {data.unsafe ? (
                   <GameButton label="Unsafe tile" icon="warning" kind="ghost" disabled />
+                ) : inRange && myId && data.state === 'disputed' && data.dispute_parties.includes(myId) ? (
+                  <GameButton label="Waiting for a third player" icon="hourglass" kind="ghost" disabled />
                 ) : inRange ? (
                   <GameButton label="CHECK THIS TILE" icon="camera" big onPress={onCheck} testID="sheet-check" />
                 ) : (

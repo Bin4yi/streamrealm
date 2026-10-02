@@ -66,6 +66,7 @@ export type TileProps = {
   healed: boolean;
   unsafe: boolean;
   treasures: number;
+  dispute_parties: string[];
 };
 export type TileFeature = { type: 'Feature'; id: string; properties: TileProps; geometry: { type: 'LineString'; coordinates: LngLat[] } };
 export type TileCollection = { type: 'FeatureCollection'; features: TileFeature[]; generated_at: string };
@@ -137,4 +138,85 @@ export function usePlayer() {
 export function useStorm() {
   const city = useGame((s) => s.city);
   return useQuery({ queryKey: ['storm', city], queryFn: () => api.get<Storm>(`/storm?city=${city}`), refetchInterval: 60_000 });
+}
+
+export type Quest = {
+  id: string;
+  title: string;
+  description: string;
+  kind: 'daily' | 'weekly_team' | 'storm';
+  target: number;
+  reward: number;
+  icon: string;
+  progress: number;
+  done: boolean;
+  claimed: boolean;
+  resets_in_hours: number;
+};
+
+export function useQuests() {
+  const id = useGame((s) => s.player?.id);
+  const warp = useGame((s) => s.timeWarpDays);
+  return useQuery({ queryKey: ['quests', id, warp], queryFn: () => api.get<Quest[]>(`/quests?player_id=${id}&time_warp_days=${warp}`), enabled: !!id });
+}
+
+export type LeaderRow = { rank: number; id: string; nickname: string; avatar: string; team: TeamId; is_bot: boolean; points: number; streak: number };
+export type Leaderboard = {
+  scope: 'week' | 'all';
+  players: LeaderRow[];
+  me: LeaderRow | null;
+  teams: { team: TeamId; points: number; tiles: number; players: number }[];
+};
+
+export function useLeaderboard(scope: 'week' | 'all') {
+  const id = useGame((s) => s.player?.id);
+  const warp = useGame((s) => s.timeWarpDays);
+  return useQuery({
+    queryKey: ['leaderboard', scope, id, warp],
+    queryFn: () => api.get<Leaderboard>(`/leaderboard?scope=${scope}&player_id=${id ?? ''}&time_warp_days=${warp}`),
+    refetchInterval: 30_000,
+  });
+}
+
+export type TeamStats = { tiles: number; fresh: number; fading: number; healed: number; share: number; health: number | null };
+export type Kingdom = {
+  team: TeamId;
+  total_tiles: number;
+  teams: Record<TeamId, TeamStats>;
+  my: { tiles_held: number; checks_week: number; points: number };
+  fading_soon: { id: string; stream_name: string; state: 'owned_fresh' | 'owned_fading'; days_left: number; center: LngLat; health: number | null }[];
+  fixed_treasures: number;
+};
+
+export function useKingdom() {
+  const id = useGame((s) => s.player?.id);
+  const warp = useGame((s) => s.timeWarpDays);
+  return useQuery({ queryKey: ['kingdom', id, warp], queryFn: () => api.get<Kingdom>(`/kingdom?player_id=${id}&time_warp_days=${warp}`), enabled: !!id, refetchInterval: 20_000 });
+}
+
+export type Badge = { id: string; name: string; icon: string; how: string; target: number; progress: number; earned: boolean };
+export type PlayerStats = { checks: number; confirmed_mine: number; confirmations_given: number; treasures: number; streams: number; badges: Badge[] };
+
+export function usePlayerStats() {
+  const id = useGame((s) => s.player?.id);
+  return useQuery({ queryKey: ['stats', id], queryFn: () => api.get<PlayerStats>(`/players/${id}/stats`), enabled: !!id });
+}
+
+export type GameEvent = {
+  id: number;
+  type: string;
+  created_at: string;
+  outcome?: string;
+  nickname?: string;
+  avatar?: string;
+  team?: TeamId;
+  is_bot?: boolean;
+  stream?: string;
+  tile_id?: string;
+  points?: number;
+  treasure?: TreasureType | null;
+};
+
+export function useEvents(limit = 8) {
+  return useQuery({ queryKey: ['events', limit], queryFn: () => api.get<GameEvent[]>(`/events?limit=${limit}`), refetchInterval: 10_000 });
 }

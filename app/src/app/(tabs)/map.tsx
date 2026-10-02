@@ -3,6 +3,7 @@ import { useEffect, useMemo } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ActivityTicker } from '@/components/game/ActivityTicker';
 import { DevPanel } from '@/components/game/DevPanel';
 import { Hud, StormBanner } from '@/components/game/Hud';
 import { TileSheet } from '@/components/game/TileSheet';
@@ -48,6 +49,7 @@ export default function MapScreen() {
   const selectedDistance = selected && g.position ? distanceToLineM(g.position, selected.geometry.coordinates) : null;
   const claimable = near && near.distance <= CLAIM_RADIUS_M && !near.item.properties.unsafe ? near.item : null;
   const action = claimable && g.player ? classifyAction(claimable.properties.state, claimable.properties.owner_team, g.player.team) : null;
+  const waitingForThird = action === 'confirm_dispute' && !!g.player && claimable!.properties.dispute_parties.includes(g.player.id);
 
   const openCheck = (tileId: string) => router.push({ pathname: '/claim/[tileId]', params: { tileId } });
 
@@ -87,6 +89,7 @@ export default function MapScreen() {
             <Chip key={f.id} label={f.label} icon={f.icon} active={g.filter === f.id} onPress={() => g.set({ filter: f.id })} />
           ))}
         </ScrollView>
+        {!g.selectedTileId && <ActivityTicker />}
       </View>
 
       {tiles.isLoading && (
@@ -99,7 +102,13 @@ export default function MapScreen() {
 
       {!g.selectedTileId && (
         <View style={styles.bottom} pointerEvents="box-none">
-          {claimable && action ? (
+          {claimable && waitingForThird ? (
+            <Card style={{ paddingVertical: space.sm }}>
+              <Txt v="small" style={{ color: colors.text }}>
+                ⚔️ Your dispute here waits for a third player. Ask a friend from any team to check it!
+              </Txt>
+            </Card>
+          ) : claimable && action ? (
             <View style={{ alignItems: 'center', gap: 6 }}>
               <Card padded={false} style={styles.hint}>
                 <Txt v="small" style={{ color: colors.text }} numberOfLines={1}>

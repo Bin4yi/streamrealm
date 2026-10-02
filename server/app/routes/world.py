@@ -10,7 +10,7 @@ from sqlmodel import Session, select
 from ..db import get_session, load_cities
 from ..models import Event, Player, Tile, TileState, iso
 from ..services import rules
-from ..services.world import describe, game_now, tiles_geojson
+from ..services.world import describe, dispute_parties, game_now, tiles_geojson
 
 router = APIRouter(tags=["world"])
 
@@ -60,7 +60,7 @@ def tile_detail(tile_id: str, time_warp_days: float = 0, session: Session = Depe
         "confirmed_by": o.confirmed_by_observation_id,
     } for o, p in obs]
     return {
-        **describe(tile, ts, now, sum(1 for t in treasures if t.status != "fixed")),
+        **describe(tile, ts, now, sum(1 for t in treasures if t.status != "fixed"), dispute_parties(session).get(tile_id)),
         "geometry": tile.coords,
         "history": history,
         "treasure_list": [{"id": t.id, "type": t.type, "status": t.status, "photo": t.photo} for t in treasures],

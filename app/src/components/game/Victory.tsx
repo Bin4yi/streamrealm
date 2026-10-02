@@ -40,7 +40,7 @@ export function VictoryBurst({ emoji, color, points }: { emoji: string; color: s
   }, [scale, spin, float]);
   const emblem = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
   const rays = useAnimatedStyle(() => ({ transform: [{ rotate: `${spin.value}deg` }, { scale: scale.value }] }));
-  const pts = useAnimatedStyle(() => ({ opacity: float.value < 0.85 ? Math.min(1, float.value * 4) : (1 - float.value) * 6.6, transform: [{ translateY: -float.value * 90 }] }));
+  const pts = useAnimatedStyle(() => ({ opacity: Math.min(1, float.value * 4), transform: [{ translateY: -float.value * 24 }, { scale: 0.7 + float.value * 0.5 }] }));
   const coins = useMemo(() => Array.from({ length: 16 }, (_, i) => i), []);
   const rayPath = useMemo(() => {
     let d = '';
@@ -85,5 +85,5 @@ const styles = StyleSheet.create({
     elevation: 12,
   },
   coin: { position: 'absolute', width: 16, height: 16, borderRadius: 8, backgroundColor: colors.gold, borderWidth: 2, borderColor: colors.goldDeep },
-  points: { position: 'absolute', top: 96, fontFamily: fonts.titleBlack, fontSize: 40, color: colors.gold, textShadowColor: '#7a5a00', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 0 },
+  points: { position: 'absolute', bottom: -8, fontFamily: fonts.titleBlack, fontSize: 40, color: colors.gold, textShadowColor: '#7a5a00', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 0 },
 });

@@ -12,13 +12,15 @@ from sqlmodel import Session, select
 from . import config
 from .db import engine, init_db
 from .models import Player
-from .routes import dev, play, world
+from .routes import dev, play, social, world
 from .services.bots import seed_world
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
+    with Session(engine) as session:
+        social.seed_quests(session)
     if config.SEED_DEMO:
         with Session(engine) as session:
             if not session.exec(select(Player).where(Player.is_bot == True)).first():  # noqa: E712
@@ -37,6 +39,7 @@ app.mount("/uploads", StaticFiles(directory=config.UPLOAD_DIR), name="uploads")
 app.mount("/demo-photos", StaticFiles(directory=config.DEMO_PHOTO_DIR), name="demo-photos")
 app.include_router(world.router)
 app.include_router(play.router)
+app.include_router(social.router)
 app.include_router(dev.router)
 
 

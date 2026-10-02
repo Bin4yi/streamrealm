@@ -7,7 +7,7 @@ from typing import Optional
 
 from sqlmodel import Session, select
 
-from ..models import Tile, TileState, Treasure, aware, iso, utcnow
+from ..models import Observation, Tile, TileState, Treasure, aware, iso, utcnow
 from . import rules
 
 
@@ -22,7 +22,7 @@ def effective_health(ts: TileState) -> Optional[int]:
     return min(100, ts.health_score + ts.health_bonus)
 
 
-def describe(tile: Tile, ts: TileState, now: datetime, treasures: int = 0) -> dict:
+def describe(tile: Tile, ts: TileState, now: datetime, treasures: int = 0, dispute_parties: Optional[list[str]] = None) -> dict:
     last = aware(ts.last_check_at)
     state = rules.tile_state(last, ts.dispute_open, now)
     owner = ts.owner_team if state in ("owned_fresh", "owned_fading", "disputed") else None
@@ -48,7 +48,17 @@ def describe(tile: Tile, ts: TileState, now: datetime, treasures: int = 0) -> di
         "healed": ts.health_bonus > 0,
         "unsafe": tile.unsafe,
         "treasures": treasures,
+        "dispute_parties": dispute_parties or [],
     }
+
+
+def dispute_parties(session: Session) -> dict[str, list[str]]:
+    """Player ids on each side of every open dispute (they cannot settle it themselves)."""
+    out: dict[str, list[str]] = {}
+    for ts in session.exec(select(TileState).where(TileState.dispute_open == True)).all():  # noqa: E712
+        ids = [i for i in (ts.dispute_obs_a, ts.dispute_obs_b) if i]
+        out[ts.tile_id] = list(session.exec(select(Observation.player_id).where(Observation.id.in_(ids))).all())
+    return out
 
 
 def open_treasure_counts(session: Session) -> Counter:
@@ -61,12 +71,13 @@ def tiles_geojson(session: Session, city: str, now: datetime) -> dict:
         select(Tile, TileState).join(TileState, TileState.tile_id == Tile.id).where(Tile.city == city)
     ).all()
     counts = open_treasure_counts(session)
+    parties = dispute_parties(session)
     features = []
     for tile, ts in rows:
         features.append({
             "type": "Feature",
             "id": tile.id,
-            "properties": describe(tile, ts, now, counts.get(tile.id, 0)),
+            "properties": describe(tile, ts, now, counts.get(tile.id, 0), parties.get(tile.id)),
             "geometry": {"type": "LineString", "coordinates": tile.coords},
         })
     return {"type": "FeatureCollection", "generated_at": iso(now), "features": features}
