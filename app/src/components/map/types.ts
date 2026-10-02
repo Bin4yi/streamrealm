@@ -23,6 +23,8 @@ export type GameMapProps = {
   onTilePress?: (id: string) => void;
   onMapPress?: (pos: Position) => void;
   style?: StyleProp<ViewStyle>;
+  /** Web: push the zoom buttons down (px) so they sit below a HUD. */
+  controlsTop?: number;
 };
 
 function mix(a: string, b: string, t: number): string {

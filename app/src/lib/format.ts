@@ -45,3 +45,8 @@ export function inDays(days: number | null | undefined): string {
   if (days < 1) return `${Math.max(1, Math.round(days * 24))} h`;
   return `${Math.round(days)} day${Math.round(days) === 1 ? '' : 's'}`;
 }
+
+/** Player level from points (a simple display number: one level per 250 points). */
+export function levelFor(points: number | undefined | null): number {
+  return 1 + Math.floor(Math.max(0, points ?? 0) / 250);
+}

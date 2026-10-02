@@ -66,6 +66,7 @@ export type TileProps = {
   healed: boolean;
   unsafe: boolean;
   treasures: number;
+  treasure_types: TreasureType[];
   dispute_parties: string[];
 };
 export type TileFeature = { type: 'Feature'; id: string; properties: TileProps; geometry: { type: 'LineString'; coordinates: LngLat[] } };

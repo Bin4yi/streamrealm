@@ -11,12 +11,13 @@ import { button, ink, type ButtonColor } from '@/theme/tokens';
 import { GameImage } from './GameImage';
 import StrokeText from './StrokeText';
 
-type Size = 'S' | 'M' | 'L' | 'Round';
+type Size = 'S' | 'M' | 'L' | 'Round' | 'RoundS';
 const SIZES: Record<Size, { h: number; lip: number; pad: number; font: number; icon: number; radius: number }> = {
   S: { h: 40, lip: 5, pad: 14, font: 16, icon: 24, radius: 14 },
   M: { h: 50, lip: 6, pad: 18, font: 20, icon: 30, radius: 16 },
   L: { h: 62, lip: 6, pad: 24, font: 25, icon: 38, radius: 20 },
   Round: { h: 92, lip: 7, pad: 0, font: 22, icon: 40, radius: 46 },
+  RoundS: { h: 58, lip: 5, pad: 0, font: 12, icon: 30, radius: 29 },
 };
 
 /**
@@ -55,7 +56,7 @@ export function GameButton({
   const p = useSharedValue(0);
   const body = useAnimatedStyle(() => ({ transform: [{ translateY: p.value * (s.lip - 1) }] }));
   const wrap = useAnimatedStyle(() => ({ transform: [{ scale: 1 - p.value * 0.04 }] }));
-  const round = size === 'Round';
+  const round = size === 'Round' || size === 'RoundS';
 
   return (
     <Animated.View style={[wrap, round ? { width: s.h } : null, style]}>

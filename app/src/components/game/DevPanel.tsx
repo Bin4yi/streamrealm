@@ -67,13 +67,7 @@ export function DevPanel() {
 
   if (!g.devPanelEnabled) return null;
 
-  if (!g.devPanelOpen) {
-    return (
-      <Pressable style={styles.fab} onPress={() => g.set({ devPanelOpen: true })} accessibilityRole="button" accessibilityLabel="Open Dev Panel">
-        <Txt style={{ fontSize: 22 }}>🛠</Txt>
-      </Pressable>
-    );
-  }
+  if (!g.devPanelOpen) return null; // opened from the 🛠 button on the map
 
   const forced = storm.data?.forced;
   return (
@@ -166,20 +160,7 @@ export function DevPanel() {
 }
 
 const styles = StyleSheet.create({
-  fab: {
-    position: 'absolute',
-    left: space.md,
-    bottom: 120,
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: 'rgba(14,42,51,0.9)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
-  },
-  panel: { position: 'absolute', left: space.md, right: space.md, bottom: 150, borderRadius: radius.lg },
+  panel: { position: 'absolute', left: space.md, right: space.md, bottom: 24, borderRadius: radius.lg },
   header: { paddingHorizontal: space.md, paddingTop: space.md, paddingBottom: space.sm, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' },
   sliderHit: { height: 32, justifyContent: 'center' },
   sliderTrack: { height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.15)', overflow: 'hidden' },

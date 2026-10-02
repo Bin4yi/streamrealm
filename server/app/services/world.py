@@ -22,7 +22,7 @@ def effective_health(ts: TileState) -> Optional[int]:
     return min(100, ts.health_score + ts.health_bonus)
 
 
-def describe(tile: Tile, ts: TileState, now: datetime, treasures: int = 0, dispute_parties: Optional[list[str]] = None) -> dict:
+def describe(tile: Tile, ts: TileState, now: datetime, treasures: int = 0, dispute_parties: Optional[list[str]] = None, treasure_types: Optional[list[str]] = None) -> dict:
     last = aware(ts.last_check_at)
     state = rules.tile_state(last, ts.dispute_open, now)
     owner = ts.owner_team if state in ("owned_fresh", "owned_fading", "disputed") else None
@@ -48,6 +48,7 @@ def describe(tile: Tile, ts: TileState, now: datetime, treasures: int = 0, dispu
         "healed": ts.health_bonus > 0,
         "unsafe": tile.unsafe,
         "treasures": treasures,
+        "treasure_types": treasure_types or [],
         "dispute_parties": dispute_parties or [],
     }
 
@@ -66,18 +67,28 @@ def open_treasure_counts(session: Session) -> Counter:
     return Counter(rows)
 
 
+def open_treasure_types(session: Session) -> dict[str, list[str]]:
+    out: dict[str, list[str]] = {}
+    for tile_id, kind in session.exec(select(Treasure.tile_id, Treasure.type).where(Treasure.status != "fixed").order_by(Treasure.created_at.desc())).all():
+        out.setdefault(tile_id, [])
+        if kind not in out[tile_id]:
+            out[tile_id].append(kind)
+    return out
+
+
 def tiles_geojson(session: Session, city: str, now: datetime) -> dict:
     rows = session.exec(
         select(Tile, TileState).join(TileState, TileState.tile_id == Tile.id).where(Tile.city == city)
     ).all()
     counts = open_treasure_counts(session)
     parties = dispute_parties(session)
+    kinds = open_treasure_types(session)
     features = []
     for tile, ts in rows:
         features.append({
             "type": "Feature",
             "id": tile.id,
-            "properties": describe(tile, ts, now, counts.get(tile.id, 0), parties.get(tile.id)),
+            "properties": describe(tile, ts, now, counts.get(tile.id, 0), parties.get(tile.id), kinds.get(tile.id)),
             "geometry": {"type": "LineString", "coordinates": tile.coords},
         })
     return {"type": "FeatureCollection", "generated_at": iso(now), "features": features}

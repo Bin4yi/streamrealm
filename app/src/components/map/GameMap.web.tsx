@@ -1,10 +1,12 @@
 import 'maplibre-gl/dist/maplibre-gl.css';
 
+import { Asset } from 'expo-asset';
 import maplibregl, { type GeoJSONSource, type Map as MLMap, type StyleSpecification } from 'maplibre-gl';
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import { View } from 'react-native';
 
 import type { TileFeature } from '@/lib/api';
+import { Images } from '@/lib/assets';
 import { colors, teams } from '@/lib/theme';
 
 import { tileStyle, type GameMapProps } from './types';
@@ -27,16 +29,60 @@ const RASTER_FALLBACK: StyleSpecification = {
 };
 const STREAM_ATTRIBUTION = 'Streams © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> (ODbL)';
 
-/** Soft "nature map" tint over the muted positron base. */
+/** Warm, simple "game board" tint over the muted positron base. */
 const TINT: [string, string, string][] = [
-  ['background', 'background-color', '#E9EFE6'],
-  ['water', 'fill-color', '#B9DDEB'],
-  ['park', 'fill-color', '#D4E7C9'],
-  ['landcover_wood', 'fill-color', '#CBE2BE'],
-  ['landuse_residential', 'fill-color', '#E4E8E1'],
-  ['building', 'fill-color', '#DADFD6'],
-  ['waterway', 'line-color', '#9CCBE0'],
+  ['background', 'background-color', '#EEF2DF'],
+  ['water', 'fill-color', '#7FC8EE'],
+  ['park', 'fill-color', '#C2E3A4'],
+  ['landcover_wood', 'fill-color', '#B5DB98'],
+  ['landuse_residential', 'fill-color', '#EAE6D6'],
+  ['building', 'fill-color', '#E2DCC8'],
+  ['waterway', 'line-color', '#7FC8EE'],
+  ['highway_minor', 'line-color', '#FFFDF6'],
+  ['highway_path', 'line-color', '#F6F1E2'],
+  ['highway_major_casing', 'line-color', '#E6DDC4'],
+  ['highway_motorway_casing', 'line-color', '#E6DDC4'],
 ];
+/** Labels and icons that make the map busy: hidden so the game reads clearly. Place names stay. */
+const HIDE = /^(airport|label_other|highway-shield|road_shield|highway-name-path|highway-name-minor|waterway_line_label|aeroway)/;
+
+/** Map icons: [name, image module, CSS size in px]. Loaded from the processed image pack. */
+const ICONS: [string, unknown, number][] = [
+  ['marker-disputed', Images.marker.disputed, 40],
+  ['marker-unsafe', Images.marker.unsafe, 36],
+  ['marker-fog', Images.marker.fog, 40],
+  ['flag-otters', Images.flag.otters, 34],
+  ['flag-frogs', Images.flag.frogs, 34],
+  ['flag-kingfishers', Images.flag.kingfishers, 34],
+  ['healed', Images.effect.sparkle, 26],
+  ...(['pipe', 'trash', 'wildlife', 'plant', 'algae'] as const).map((t) => [`treasure-${t}`, Images.treasure[t], 38] as [string, unknown, number]),
+];
+
+/** URL of a bundled image. On web, require() gives a URL string or {uri}; on native, a number. */
+function assetUri(mod: unknown): string | null {
+  try {
+    if (typeof mod === 'string') return mod;
+    if (mod && typeof mod === 'object' && 'uri' in mod) return String((mod as { uri: string }).uri);
+    if (typeof mod === 'number') return Asset.fromModule(mod).uri;
+  } catch {
+    /* fall through */
+  }
+  return null;
+}
+
+/** Add every icon to the current style. Missing images are skipped (the layer then shows nothing). */
+function loadIcons(map: MLMap) {
+  for (const [name, mod, css] of ICONS) {
+    const uri = assetUri(mod);
+    if (!uri || map.hasImage(name)) continue;
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      if (!map.hasImage(name)) map.addImage(name, img, { pixelRatio: Math.max(1, img.naturalWidth / css) });
+    };
+    img.src = uri;
+  }
+}
 
 const CSS = `
 @keyframes sr-pulse { 0% { transform: scale(0.6); opacity: 0.8 } 100% { transform: scale(2.6); opacity: 0 } }
@@ -45,12 +91,12 @@ const CSS = `
 @keyframes sr-coin { 0% { transform: translate(0,0) scale(0.4); opacity: 1 } 100% { transform: translate(var(--dx), var(--dy)) scale(1); opacity: 0 } }
 .sr-me { position: relative; width: 22px; height: 22px; }
 .sr-me .ring { position: absolute; inset: 0; border-radius: 50%; background: var(--c); animation: sr-pulse 1.8s ease-out infinite; }
+.sr-me .pin { position: absolute; left: -9px; bottom: 8px; width: 40px; height: 40px; filter: drop-shadow(0 3px 3px rgba(0,0,0,.4)); }
 .sr-me .dot { position: absolute; inset: 3px; border-radius: 50%; background: var(--c); border: 3px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,.4); }
-.sr-badge { font-size: 18px; line-height: 1; padding: 4px; border-radius: 12px; background: rgba(14,42,51,.85); border: 2px solid var(--c); box-shadow: 0 2px 6px rgba(0,0,0,.35); cursor: pointer; user-select: none; }
-.sr-badge.bob { animation: sr-bob 1.6s ease-in-out infinite; }
 .sr-float { font: 900 28px Cinzel_900Black, Cinzel, serif; color: #F2C94C; text-shadow: 0 2px 0 #7a5a00, 0 0 12px rgba(242,201,76,.8); animation: sr-float 2.2s ease-out forwards; pointer-events: none; white-space: nowrap; }
 .sr-coin { position: absolute; left: 0; top: 0; width: 14px; height: 14px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff6c8, #F2C94C 45%, #C9971C); box-shadow: 0 0 6px rgba(242,201,76,.9); animation: sr-coin 1.1s ease-out forwards; }
 .maplibregl-ctrl-attrib { font-size: 10px; }
+.maplibregl-ctrl-top-right { top: var(--sr-ctrl-top, 0px); }
 `;
 
 function ensureCss() {
@@ -61,16 +107,18 @@ function ensureCss() {
   document.head.appendChild(el);
 }
 
-const TILE_LAYERS = ['tile-hit'];
+const TILE_LAYERS = ['sym-disputed', 'sym-treasure', 'sym-unsafe', 'sym-flag', 'tile-hit'];
 
 export default function GameMap(props: GameMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MLMap | null>(null);
   const readyRef = useRef(false);
   const propsRef = useRef(props);
-  const markersRef = useRef<maplibregl.Marker[]>([]);
   const meRef = useRef<maplibregl.Marker | null>(null);
-  propsRef.current = props;
+  // Keep the latest props for map event handlers (they are bound once).
+  useLayoutEffect(() => {
+    propsRef.current = props;
+  });
 
   // ---- create map once ----
   useEffect(() => {
@@ -85,7 +133,7 @@ export default function GameMap(props: GameMapProps) {
       dragRotate: false,
       pitchWithRotate: false,
     });
-    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
+    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
     mapRef.current = map;
 
     let usedFallback = false;
@@ -102,6 +150,7 @@ export default function GameMap(props: GameMapProps) {
 
     map.on('style.load', () => {
       clearTimeout(fallbackTimer);
+      for (const l of map.getStyle().layers ?? []) if (HIDE.test(l.id)) map.setLayoutProperty(l.id, 'visibility', 'none');
       for (const [layer, prop, value] of TINT) {
         try {
           if (map.getLayer(layer)) map.setPaintProperty(layer, prop as never, value);
@@ -110,11 +159,11 @@ export default function GameMap(props: GameMapProps) {
         }
       }
       addGameLayers(map);
+      loadIcons(map);
       // Start with the attribution collapsed to its (i) button so it does not cover the game buttons.
       map.getContainer().querySelector('.maplibregl-ctrl-attrib')?.classList.remove('maplibregl-compact-show');
       readyRef.current = true;
       syncData(map, propsRef.current);
-      syncMarkers();
     });
 
     map.on('click', (e) => {
@@ -123,7 +172,12 @@ export default function GameMap(props: GameMapProps) {
         [e.point.x - 8, e.point.y - 8],
         [e.point.x + 8, e.point.y + 8],
       ];
-      const hit = readyRef.current ? map.queryRenderedFeatures(box, { layers: TILE_LAYERS }) : [];
+      const cluster = readyRef.current ? map.queryRenderedFeatures(box, { layers: ['treasure-cluster'] })[0] : undefined;
+      if (cluster) {
+        map.easeTo({ center: (cluster.geometry as GeoJSON.Point).coordinates as [number, number], zoom: map.getZoom() + 2 });
+        return;
+      }
+      const hit = readyRef.current ? map.queryRenderedFeatures(box, { layers: TILE_LAYERS.filter((l) => map.getLayer(l)) }) : [];
       const id = hit[0]?.properties?.id as string | undefined;
       if (id && p.onTilePress) p.onTilePress(id);
       else p.onMapPress?.({ lat: e.lngLat.lat, lon: e.lngLat.lng });
@@ -135,7 +189,7 @@ export default function GameMap(props: GameMapProps) {
           [e.point.x - 6, e.point.y - 6],
           [e.point.x + 6, e.point.y + 6],
         ],
-        { layers: TILE_LAYERS },
+        { layers: [...TILE_LAYERS, 'treasure-cluster'].filter((l) => map.getLayer(l)) },
       );
       map.getCanvas().style.cursor = hit.length ? 'pointer' : propsRef.current.onMapPress ? 'crosshair' : '';
     });
@@ -152,6 +206,7 @@ export default function GameMap(props: GameMapProps) {
         map.setPaintProperty('tile-fading', 'line-opacity', 0.35 + 0.35 * s);
         map.setPaintProperty('tile-highlight', 'line-opacity', 0.35 + 0.5 * s);
         map.setPaintProperty('tile-disputed', 'line-opacity', 0.55 + 0.45 * s);
+        map.setPaintProperty('sym-disputed', 'icon-opacity', 0.65 + 0.35 * s);
       } catch {
         /* style reloading */
       }
@@ -172,49 +227,11 @@ export default function GameMap(props: GameMapProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ---- data + markers ----
-  function syncMarkers() {
-    const map = mapRef.current;
-    const p = propsRef.current;
-    if (!map) return;
-    markersRef.current.forEach((m) => m.remove());
-    markersRef.current = [];
-    const mode = p.mode ?? 'game';
-    for (const f of p.tiles?.features ?? []) {
-      const pr = f.properties;
-      const { visible } = tileStyle(f, mode, p.filter ?? 'all', p.myTeam);
-      const badges: { text: string; color: string; bob: boolean; title: string }[] = [];
-      if (pr.state === 'disputed' && mode !== 'treasures' && mode !== 'health' && mode !== 'freshness')
-        badges.push({ text: '⚔️', color: colors.disputed, bob: true, title: 'Disputed: two checks disagree' });
-      if (pr.treasures > 0 && (mode === 'game' || mode === 'treasures') && (visible || mode === 'treasures'))
-        badges.push({ text: '💎', color: colors.gold, bob: false, title: `${pr.treasures} treasure(s) found here` });
-      if (pr.unsafe) badges.push({ text: '⚠️', color: colors.danger, bob: false, title: 'Unsafe tile. Do not check it.' });
-      if (pr.healed && mode === 'game') badges.push({ text: '✨', color: colors.success, bob: false, title: 'Healed: a problem here was fixed' });
-      if (!badges.length || (!visible && mode === 'game')) continue;
-      const el = document.createElement('div');
-      el.style.display = 'flex';
-      el.style.gap = '3px';
-      for (const b of badges) {
-        const s = document.createElement('div');
-        s.className = `sr-badge${b.bob ? ' bob' : ''}`;
-        s.style.setProperty('--c', b.color);
-        s.textContent = b.text;
-        s.title = b.title;
-        el.appendChild(s);
-      }
-      el.addEventListener('click', (ev) => {
-        ev.stopPropagation();
-        propsRef.current.onTilePress?.(pr.id);
-      });
-      markersRef.current.push(new maplibregl.Marker({ element: el, offset: [0, -16] }).setLngLat(pr.center).addTo(map));
-    }
-  }
-
+  // ---- data ----
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !readyRef.current) return;
     syncData(map, props);
-    syncMarkers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.tiles, props.filter, props.mode, props.myTeam, props.highlightTileId, props.selectedTileId]);
 
@@ -232,7 +249,8 @@ export default function GameMap(props: GameMapProps) {
       const el = document.createElement('div');
       el.className = 'sr-me';
       el.style.setProperty('--c', props.myTeam ? teams[props.myTeam].color : colors.water);
-      el.innerHTML = '<div class="ring"></div><div class="dot"></div>';
+      const pin = assetUri(Images.marker.player);
+      el.innerHTML = pin ? `<div class="ring"></div><img class="pin" src="${pin}" alt="You are here" />` : '<div class="ring"></div><div class="dot"></div>';
       el.title = 'You are here';
       meRef.current = new maplibregl.Marker({ element: el }).setLngLat(ll).addTo(map);
     } else {
@@ -309,7 +327,7 @@ export default function GameMap(props: GameMapProps) {
 
   return (
     <View style={[{ flex: 1, overflow: 'hidden', backgroundColor: '#E9EFE6' }, props.style]}>
-      <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
+      <div ref={containerRef} style={{ position: 'absolute', inset: 0, ['--sr-ctrl-top' as string]: `${props.controlsTop ?? 0}px` }} />
     </View>
   );
 }
@@ -335,7 +353,7 @@ function addGameLayers(map: MLMap) {
   map.addLayer({
     id: 'tile-casing', type: 'line', source: 'tiles', layout: round,
     filter: ['all', ['!=', ['get', 'state'], 'fog'], ['==', ['get', 'visible'], true]],
-    paint: { 'line-color': '#0E2A33', 'line-width': W(12), 'line-opacity': 0.35 },
+    paint: { 'line-color': '#FFFFFF', 'line-width': W(14), 'line-opacity': 0.95 },
   });
   map.addLayer({
     id: 'tile-fog-cloud', type: 'line', source: 'tiles', layout: round,
@@ -387,6 +405,50 @@ function addGameLayers(map: MLMap) {
     id: 'flash', type: 'line', source: 'flash', layout: round,
     paint: { 'line-width': W(14), 'line-gradient': ['interpolate', ['linear'], ['line-progress'], 0, 'rgba(0,0,0,0)', 1, 'rgba(0,0,0,0)'] as never },
   });
+  // ---- symbol markers (images from the image pack) ----
+  map.addSource('points', { type: 'geojson', data: empty });
+  map.addSource('treasure-pts', { type: 'geojson', data: empty, cluster: true, clusterRadius: 44, clusterMaxZoom: 14 });
+  const Z = (a: number, b: number) => ['interpolate', ['linear'], ['zoom'], 12, a, 17, b] as never;
+  map.addLayer({
+    id: 'sym-fog', type: 'symbol', source: 'points', maxzoom: 14.8,
+    filter: ['all', ['==', ['get', 'state'], 'fog'], ['==', ['get', 'show'], true]],
+    layout: { 'icon-image': 'marker-fog', 'icon-size': 0.6, 'icon-padding': 24 },
+    paint: { 'icon-opacity': 0.85 },
+  });
+  map.addLayer({
+    id: 'sym-flag', type: 'symbol', source: 'points', minzoom: 15,
+    filter: ['all', ['in', ['get', 'state'], ['literal', ['owned_fresh', 'owned_fading']]], ['==', ['get', 'show'], true]],
+    layout: { 'icon-image': ['concat', 'flag-', ['get', 'owner']], 'icon-anchor': 'bottom-left', 'icon-size': Z(0.6, 1.1), 'icon-padding': 4 },
+    paint: { 'icon-opacity': ['case', ['==', ['get', 'state'], 'owned_fading'], 0.6, 1] },
+  });
+  map.addLayer({
+    id: 'sym-healed', type: 'symbol', source: 'points',
+    filter: ['all', ['==', ['get', 'healed'], true], ['==', ['get', 'show'], true]],
+    layout: { 'icon-image': 'healed', 'icon-size': Z(0.6, 1), 'icon-offset': [24, -24], 'icon-allow-overlap': true },
+  });
+  map.addLayer({
+    id: 'sym-unsafe', type: 'symbol', source: 'points',
+    filter: ['==', ['get', 'unsafe'], true],
+    layout: { 'icon-image': 'marker-unsafe', 'icon-size': Z(0.6, 1), 'icon-anchor': 'bottom', 'icon-allow-overlap': true },
+  });
+  map.addLayer({
+    id: 'sym-disputed', type: 'symbol', source: 'points',
+    filter: ['all', ['==', ['get', 'state'], 'disputed'], ['==', ['get', 'showDispute'], true]],
+    layout: { 'icon-image': 'marker-disputed', 'icon-size': Z(0.7, 1.1), 'icon-allow-overlap': true },
+  });
+  map.addLayer({
+    id: 'treasure-cluster', type: 'circle', source: 'treasure-pts', filter: ['has', 'point_count'],
+    paint: { 'circle-color': colors.gold, 'circle-radius': 16, 'circle-stroke-width': 3, 'circle-stroke-color': '#1E1208' },
+  });
+  map.addLayer({
+    id: 'treasure-count', type: 'symbol', source: 'treasure-pts', filter: ['has', 'point_count'],
+    layout: { 'text-field': ['concat', '💎', ['to-string', ['get', 'point_count']]], 'text-font': ['Noto Sans Bold'], 'text-size': 13, 'text-allow-overlap': true },
+    paint: { 'text-color': '#1E1208' },
+  });
+  map.addLayer({
+    id: 'sym-treasure', type: 'symbol', source: 'treasure-pts', filter: ['!', ['has', 'point_count']],
+    layout: { 'icon-image': ['concat', 'treasure-', ['get', 'kind']], 'icon-size': Z(0.6, 1.05), 'icon-offset': [-22, -22], 'icon-allow-overlap': true },
+  });
   // Wide invisible layer that makes thin lines easy to tap.
   map.addLayer({ id: 'tile-hit', type: 'line', source: 'tiles', paint: { 'line-color': '#000', 'line-width': 22, 'line-opacity': 0.001 } });
 }
@@ -414,4 +476,28 @@ function syncData(map: MLMap, p: GameMapProps) {
     };
   });
   src.setData({ type: 'FeatureCollection', features });
+
+  const game = mode === 'game';
+  const heat = mode === 'freshness' || mode === 'health';
+  const pts = (p.tiles?.features ?? []).map((f: TileFeature) => {
+    const { visible } = tileStyle(f, mode, p.filter ?? 'all', p.myTeam);
+    const pr = f.properties;
+    return {
+      type: 'Feature' as const,
+      geometry: { type: 'Point' as const, coordinates: pr.center },
+      properties: {
+        id: f.id,
+        state: pr.state,
+        owner: pr.owner_team ?? '',
+        unsafe: pr.unsafe,
+        healed: game && pr.healed,
+        show: game && visible,
+        showDispute: !heat && (visible || mode === 'disputes'),
+        kind: pr.treasure_types?.[0] ?? 'trash',
+        treasure: pr.treasures > 0 && ((game && visible) || mode === 'treasures'),
+      },
+    };
+  });
+  (map.getSource('points') as GeoJSONSource | undefined)?.setData({ type: 'FeatureCollection', features: pts });
+  (map.getSource('treasure-pts') as GeoJSONSource | undefined)?.setData({ type: 'FeatureCollection', features: pts.filter((f) => f.properties.treasure) });
 }

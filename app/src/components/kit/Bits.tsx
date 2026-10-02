@@ -86,7 +86,7 @@ export function ResourcePill({
       <Animated.View style={[styles.pillIcon, iconStyle]}>
         <GameImage src={icon} size={38} fallback={fallback} />
       </Animated.View>
-      <StrokeText size="S" fontSize={18} style={{ minWidth: 34, textAlign: 'right' }}>
+      <StrokeText size="S" fontSize={17} style={{ minWidth: 22, textAlign: 'right' }}>
         {shown}
       </StrokeText>
       {onPlus && (
@@ -177,9 +177,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
     height: 34,
-    paddingLeft: 30,
+    paddingLeft: 26,
     paddingRight: 8,
-    marginLeft: 12,
+    marginLeft: 10,
     borderRadius: 17,
     backgroundColor: 'rgba(14,20,24,0.82)',
     borderWidth: 2.5,
