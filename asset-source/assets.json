@@ -1,0 +1,64 @@
+[
+  { "id": "app-icon", "group": "identity", "size": 1024, "alt": "StreamRealm app icon: a stream and a small tower" },
+  { "id": "splash-art", "group": "identity", "size": 1536, "alt": "A magical stream valley at sunrise" },
+  { "id": "game-bg-pattern", "group": "identity", "size": 512, "alt": "Water pattern" },
+
+  { "id": "emblem-otters", "group": "emblems", "size": 512, "alt": "Otters team crest" },
+  { "id": "emblem-frogs", "group": "emblems", "size": 512, "alt": "Frogs team crest" },
+  { "id": "emblem-kingfishers", "group": "emblems", "size": 512, "alt": "Kingfishers team crest" },
+
+  { "id": "mascot-otter", "group": "mascots", "size": 768, "alt": "Otter explorer mascot with a magnifying glass" },
+  { "id": "mascot-frog", "group": "mascots", "size": 768, "alt": "Frog explorer mascot with a map" },
+  { "id": "mascot-kingfisher", "group": "mascots", "size": 768, "alt": "Kingfisher mascot with open wings" },
+
+  { "id": "avatar-heron", "group": "avatars", "size": 256, "alt": "Heron avatar" },
+  { "id": "avatar-duck", "group": "avatars", "size": 256, "alt": "Duck avatar" },
+  { "id": "avatar-owl", "group": "avatars", "size": 256, "alt": "Owl avatar" },
+  { "id": "avatar-fox", "group": "avatars", "size": 256, "alt": "Fox avatar" },
+  { "id": "avatar-salamander", "group": "avatars", "size": 256, "alt": "Salamander avatar" },
+  { "id": "avatar-dragonfly", "group": "avatars", "size": 256, "alt": "Dragonfly avatar" },
+  { "id": "avatar-trout", "group": "avatars", "size": 256, "alt": "Trout avatar" },
+  { "id": "avatar-hedgehog", "group": "avatars", "size": 256, "alt": "Hedgehog avatar" },
+
+  { "id": "marker-player", "group": "markers", "size": 192, "alt": "Your position" },
+  { "id": "marker-outpost", "group": "markers", "size": 192, "alt": "Research outpost" },
+  { "id": "marker-disputed", "group": "markers", "size": 192, "alt": "Disputed tile" },
+  { "id": "marker-unsafe", "group": "markers", "size": 192, "alt": "Unsafe tile" },
+  { "id": "marker-fog", "group": "markers", "size": 192, "alt": "Unexplored fog" },
+  { "id": "flag-white", "group": "markers", "size": 192, "alt": "Flag" },
+
+  { "id": "treasure-pipe", "group": "treasures", "size": 192, "alt": "Treasure: pipe or outlet" },
+  { "id": "treasure-trash", "group": "treasures", "size": 192, "alt": "Treasure: trash hotspot" },
+  { "id": "treasure-wildlife", "group": "treasures", "size": 192, "alt": "Treasure: bird or animal" },
+  { "id": "treasure-plant", "group": "treasures", "size": 192, "alt": "Treasure: strange plant" },
+  { "id": "treasure-algae", "group": "treasures", "size": 192, "alt": "Treasure: algae bloom" },
+
+  { "id": "badge-explorer", "group": "badges", "size": 256, "alt": "Explorer badge" },
+  { "id": "badge-defender", "group": "badges", "size": 256, "alt": "Defender badge" },
+  { "id": "badge-detective", "group": "badges", "size": 256, "alt": "Detective badge" },
+  { "id": "badge-storm-chaser", "group": "badges", "size": 256, "alt": "Storm Chaser badge" },
+  { "id": "badge-treasure-hunter", "group": "badges", "size": 256, "alt": "Treasure Hunter badge" },
+
+  { "id": "icon-streak-flame", "group": "effects", "size": 192, "alt": "Streak flame" },
+  { "id": "coin", "group": "effects", "size": 192, "alt": "Coin" },
+  { "id": "coin-pile", "group": "effects", "size": 192, "alt": "Pile of coins" },
+  { "id": "sparkle", "group": "effects", "size": 192, "alt": "Sparkle" },
+
+  { "id": "plant-stage-1", "group": "plant", "size": 512, "alt": "Wilted plant in a pot" },
+  { "id": "plant-stage-2", "group": "plant", "size": 512, "alt": "Small weak plant in a pot" },
+  { "id": "plant-stage-3", "group": "plant", "size": 512, "alt": "Healthy young plant in a pot" },
+  { "id": "plant-stage-4", "group": "plant", "size": 512, "alt": "Leafy plant in a pot" },
+  { "id": "plant-stage-5", "group": "plant", "size": 512, "alt": "Plant in full bloom" },
+
+  { "id": "onboarding-explore", "group": "onboarding", "size": 1024, "alt": "Animal friends exploring a stream island" },
+  { "id": "onboarding-science", "group": "onboarding", "size": 1024, "alt": "A scientist and a young explorer looking at stream data" },
+  { "id": "onboarding-safety", "group": "onboarding", "size": 1024, "alt": "Otter ranger standing safely on the path by a stream" },
+
+  { "id": "storm-cloud", "group": "moments", "size": 512, "alt": "Storm cloud with rain and lightning" },
+  { "id": "victory-banner", "group": "moments", "size": 512, "alt": "Golden victory trophy" },
+  { "id": "quest-scroll", "group": "moments", "size": 512, "alt": "Quest scroll" },
+  { "id": "quest-chest", "group": "moments", "size": 512, "alt": "Treasure chest" },
+  { "id": "empty-treasures", "group": "moments", "size": 512, "alt": "Otter looking into an empty chest" },
+  { "id": "empty-peace", "group": "moments", "size": 512, "alt": "Crossed swords with a white dove: all is peaceful" },
+  { "id": "tile-conquered", "group": "moments", "size": 512, "alt": "A flag planted on a conquered piece of land" }
+]
