@@ -1,7 +1,8 @@
 import { router } from 'expo-router';
 import { useState, type ReactNode } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import Animated, { FadeInRight, FadeOutLeft } from 'react-native-reanimated';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, { FadeInRight, FadeOutLeft, runOnJS } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ConquerArt, MissionArt, SafetyArt } from '@/components/game/Illustrations';
@@ -53,6 +54,13 @@ export default function Onboarding() {
   const [error, setError] = useState<string | null>(null);
 
   const isPick = step === CARDS.length;
+  // Swipe left / right between the intro cards.
+  const swipe = Gesture.Pan()
+    .activeOffsetX([-30, 30])
+    .onEnd((e) => {
+      if (e.translationX < -60) runOnJS(setStep)(Math.min(CARDS.length, step + 1));
+      else if (e.translationX > 60) runOnJS(setStep)(Math.max(0, step - 1));
+    });
   const nickOk = nickname.trim().length >= 2;
 
   const start = async () => {
@@ -78,20 +86,22 @@ export default function Onboarding() {
             StreamRealm
           </Txt>
           {!isPick ? (
-            <Animated.View key={step} entering={FadeInRight.duration(350)} exiting={FadeOutLeft.duration(200)} style={styles.card}>
-              <View style={{ alignItems: 'center' }}>{CARDS[step].art}</View>
-              <Txt v="h1" style={{ textAlign: 'center', marginTop: space.lg }}>
-                {CARDS[step].title}
-              </Txt>
-              <View style={{ gap: space.sm, marginTop: space.md }}>
-                {CARDS[step].lines.map((l) => (
-                  <Row key={l} style={{ alignItems: 'flex-start' }}>
-                    <Text style={{ color: colors.gold, fontSize: 16 }}>✦</Text>
-                    <Txt style={{ flex: 1 }}>{l}</Txt>
-                  </Row>
-                ))}
-              </View>
-            </Animated.View>
+            <GestureDetector gesture={swipe}>
+              <Animated.View key={step} entering={FadeInRight.duration(350)} exiting={FadeOutLeft.duration(200)} style={styles.card}>
+                <View style={{ alignItems: 'center' }}>{CARDS[step].art}</View>
+                <Txt v="h1" style={{ textAlign: 'center', marginTop: space.lg }}>
+                  {CARDS[step].title}
+                </Txt>
+                <View style={{ gap: space.sm, marginTop: space.md }}>
+                  {CARDS[step].lines.map((l) => (
+                    <Row key={l} style={{ alignItems: 'flex-start' }}>
+                      <Text style={{ color: colors.gold, fontSize: 16 }}>✦</Text>
+                      <Txt style={{ flex: 1 }}>{l}</Txt>
+                    </Row>
+                  ))}
+                </View>
+              </Animated.View>
+            </GestureDetector>
           ) : (
             <Animated.View entering={FadeInRight.duration(350)} style={styles.card}>
               <Txt v="h1" style={{ textAlign: 'center' }}>
@@ -138,7 +148,10 @@ export default function Onboarding() {
                       testID={`team-${id}`}
                       accessibilityRole="radio"
                       accessibilityState={{ selected: on }}
-                      style={[styles.team, { borderColor: on ? t.color : 'rgba(255,255,255,0.12)', backgroundColor: on ? `${t.color}33` : 'rgba(255,255,255,0.04)' }]}
+                      style={[
+                        styles.team,
+                        { borderColor: on ? t.color : 'rgba(255,255,255,0.12)', backgroundColor: on ? `${t.color}33` : 'rgba(255,255,255,0.04)' },
+                      ]}
                     >
                       <View style={[styles.teamIcon, { backgroundColor: t.color }]}>
                         <Text style={{ fontSize: 26 }}>{t.emoji}</Text>
@@ -167,7 +180,13 @@ export default function Onboarding() {
           </Row>
           <View style={{ marginTop: space.lg, gap: space.sm }}>
             {!isPick ? (
-              <GameButton label={step === CARDS.length - 1 ? 'I will play safe' : 'Next'} icon="arrow-forward" big onPress={() => setStep(step + 1)} testID="onb-next" />
+              <GameButton
+                label={step === CARDS.length - 1 ? 'I will play safe' : 'Next'}
+                icon="arrow-forward"
+                big
+                onPress={() => setStep(step + 1)}
+                testID="onb-next"
+              />
             ) : (
               <GameButton label="Enter the realm" icon="flag" big disabled={!team || !nickOk} loading={busy} onPress={start} testID="onb-start" />
             )}
@@ -196,7 +215,15 @@ const styles = StyleSheet.create({
     fontSize: 17,
   },
   avatars: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 6 },
-  avatar: { width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'rgba(255,255,255,0.12)' },
+  avatar: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.12)',
+  },
   team: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.md, borderRadius: radius.lg, borderWidth: 2, minHeight: 64 },
   teamIcon: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
   teamName: { fontFamily: fonts.title, fontSize: 18, color: colors.text },

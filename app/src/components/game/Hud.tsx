@@ -78,7 +78,7 @@ export function StormBanner() {
           </Row>
           <Txt v="small" style={{ color: '#E6F2FF' }}>
             After heavy rain, sewers can overflow. Your checks matter most now!
-            {data.rain_mm_48h != null ? ` (${data.rain_mm_48h.toFixed(1)} mm forecast)` : ''}
+            {data.forced ? ' (Storm switched on in the Dev Panel for the demo.)' : data.rain_mm_48h != null ? ` (${data.rain_mm_48h.toFixed(1)} mm of rain forecast in 48 h)` : ''}
           </Txt>
         </View>
       </Row>

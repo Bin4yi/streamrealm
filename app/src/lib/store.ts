@@ -29,7 +29,8 @@ type GameState = {
   useDemoPhotos: boolean;
   setPlayer: (p: LocalPlayer | null) => void;
   setPosition: (p: Position | null) => void;
-  set: (patch: Partial<Omit<GameState, 'set' | 'setPlayer' | 'setPosition'>>) => void;
+  flashClaim: (tileId: string, team: TeamId, points: number) => void;
+  set: (patch: Partial<Omit<GameState, 'set' | 'setPlayer' | 'setPosition' | 'flashClaim'>>) => void;
 };
 
 export const useGame = create<GameState>()(
@@ -37,7 +38,7 @@ export const useGame = create<GameState>()(
     (set) => ({
       hydrated: false,
       player: null,
-      city: 'coimbra',
+      city: process.env.EXPO_PUBLIC_CITY || 'coimbra',
       position: null,
       realGps: false,
       devPanelEnabled: true,
@@ -52,6 +53,7 @@ export const useGame = create<GameState>()(
       useDemoPhotos: false,
       setPlayer: (player) => set({ player }),
       setPosition: (position) => set({ position }),
+      flashClaim: (tileId, team, points) => set({ claimFlash: { tileId, team, points, at: Date.now() }, selectedTileId: null }),
       set: (patch) => set(patch),
     }),
     {
@@ -59,7 +61,6 @@ export const useGame = create<GameState>()(
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (s) => ({
         player: s.player,
-        city: s.city,
         position: s.position,
         realGps: s.realGps,
         devPanelEnabled: s.devPanelEnabled,

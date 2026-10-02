@@ -26,6 +26,7 @@ import {
   type QuestionId,
   type TreasureType,
 } from '@/lib/gameRules';
+import { play } from '@/lib/sound';
 import { useGame } from '@/lib/store';
 import { colors, fonts, radius, space, teams } from '@/lib/theme';
 import { appendPhoto, pickPhoto } from '@/lib/upload';
@@ -171,6 +172,8 @@ export default function ClaimScreen() {
         time_warp_days: g.timeWarpDays,
       });
       setResult(r);
+      play(r.outcome === 'dispute_started' ? 'clash' : 'success');
+      if (r.points > 0) setTimeout(() => play('coin'), 450);
       go('victory');
       qc.invalidateQueries();
     } catch (e) {
@@ -182,7 +185,7 @@ export default function ClaimScreen() {
 
   const finish = () => {
     if (result && tile && result.animation.type === 'paint') {
-      g.set({ claimFlash: { tileId: tile.id, team: result.animation.team, points: result.points, at: Date.now() }, selectedTileId: null });
+      g.flashClaim(tile.id, result.animation.team, result.points);
     } else g.set({ selectedTileId: null });
     router.replace('/map');
   };
@@ -248,6 +251,7 @@ export default function ClaimScreen() {
               accessibilityRole="radio"
               accessibilityState={{ selected: on }}
               onPress={() => {
+                play('click');
                 setAnswers((a) => ({ ...a, [q]: v }));
                 setTimeout(next, 180);
               }}

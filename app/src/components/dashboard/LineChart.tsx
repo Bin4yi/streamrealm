@@ -31,13 +31,14 @@ export function LineChart({
   const [hover, setHover] = useState<number | null>(null);
   const n = Math.max(...series.map((s) => s.values.length));
   const top = Math.max(1, yMax ?? Math.max(...series.flatMap((s) => s.values)) * 1.1);
-  const pad = { l: 44, r: 128, t: 12, b: 30 };
+  const pad = { l: 44, r: 190, t: 12, b: 30 };
   const w = Math.max(200, width - pad.l - pad.r);
   const h = height - pad.t - pad.b;
   const x = (i: number) => pad.l + (n <= 1 ? 0 : (i / (n - 1)) * w);
   const y = (v: number) => pad.t + h - (Math.max(0, v) / top) * h;
   const ticks = [0, 0.25, 0.5, 0.75, 1].map((f) => f * top);
-  const xticks = Array.from({ length: 7 }, (_, k) => Math.round((k / 6) * (n - 1)));
+  // Index i is day i + 1; label day 1 and every 10th day.
+  const xticks = Array.from({ length: n }, (_, i) => i).filter((i) => i === 0 || (i + 1) % 10 === 0);
 
   // End labels: keep them from overlapping by spreading them at least 14px apart.
   const ends = series
@@ -69,7 +70,7 @@ export function LineChart({
         ))}
         {xticks.map((i) => (
           <SvgText key={i} x={x(i)} y={height - 8} fontSize={11} fill={d.muted} textAnchor="middle" fontFamily={fonts.bodySemi}>
-            {i}
+            {i + 1}
           </SvgText>
         ))}
         {series.map((s) => (
@@ -87,7 +88,7 @@ export function LineChart({
           <G key={s.id}>
             <Circle cx={x(s.values.length - 1)} cy={y(s.values[s.values.length - 1] ?? 0)} r={4} fill={s.color} stroke={d.surface} strokeWidth={2} />
             <SvgText x={pad.l + w + 8} y={ly + 4} fontSize={11} fill={d.ink} fontFamily={fonts.bodyBold}>
-              {`${format(s.values[s.values.length - 1] ?? 0)} ${s.label.length > 16 ? s.label.slice(0, 15) + '…' : s.label}`}
+              {`${format(s.values[s.values.length - 1] ?? 0)} ${s.label.length > 26 ? s.label.slice(0, 25) + '…' : s.label}`}
             </SvgText>
           </G>
         ))}
@@ -117,7 +118,7 @@ export function LineChart({
           }}
         >
           <DText v="label">
-            {xLabel} {hover}
+            {xLabel} {hover + 1}
           </DText>
           {series.map((s) => (
             <View key={s.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>

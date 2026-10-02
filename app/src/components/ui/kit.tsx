@@ -94,8 +94,8 @@ export function GameButton({
         accessibilityLabel={label}
         disabled={disabled || loading}
         onPress={onPress}
-        onPressIn={() => (scale.value = withSpring(0.95, { damping: 15 }))}
-        onPressOut={() => (scale.value = withSpring(1, { damping: 12 }))}
+        onPressIn={() => scale.set(withSpring(0.95, { damping: 15 }))}
+        onPressOut={() => scale.set(withSpring(1, { damping: 12 }))}
         style={Platform.OS === 'web' ? ({ cursor: disabled ? 'not-allowed' : 'pointer' } as ViewStyle) : undefined}
       >
         <LinearGradient

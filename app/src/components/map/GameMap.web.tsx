@@ -367,6 +367,17 @@ function addGameLayers(map: MLMap) {
     filter: ['==', ['get', 'state'], 'disputed'],
     paint: { 'line-color': '#FFFFFF', 'line-width': W(4), 'line-dasharray': [0.6, 1.2], 'line-opacity': 0.9 },
   });
+  // Team pattern so ownership is never shown by colour alone: Otters solid, Frogs dots, Kingfishers dashes.
+  map.addLayer({
+    id: 'tile-team-frogs', type: 'line', source: 'tiles', layout: { 'line-cap': 'round' },
+    filter: ['all', ['==', ['get', 'owner'], 'frogs'], ['in', ['get', 'state'], ['literal', ['owned_fresh', 'owned_fading']]], ['==', ['get', 'visible'], true]],
+    paint: { 'line-color': '#FFFFFF', 'line-width': W(3), 'line-dasharray': [0.01, 2.2], 'line-opacity': 0.9 },
+  });
+  map.addLayer({
+    id: 'tile-team-kingfishers', type: 'line', source: 'tiles', layout: { 'line-cap': 'butt' },
+    filter: ['all', ['==', ['get', 'owner'], 'kingfishers'], ['in', ['get', 'state'], ['literal', ['owned_fresh', 'owned_fading']]], ['==', ['get', 'visible'], true]],
+    paint: { 'line-color': '#FFFFFF', 'line-width': W(2.5), 'line-dasharray': [2, 1.6], 'line-opacity': 0.85 },
+  });
   map.addLayer({
     id: 'tile-selected', type: 'line', source: 'tiles', layout: round,
     filter: ['==', ['get', 'selected'], true],
@@ -394,6 +405,7 @@ function syncData(map: MLMap, p: GameMapProps) {
       properties: {
         id: f.id,
         state,
+        owner: mode === 'game' ? f.properties.owner_team ?? '' : '',
         color,
         visible,
         highlight: f.id === p.highlightTileId,

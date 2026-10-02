@@ -13,7 +13,6 @@ TILES_DIR = DATA_DIR / "tiles"
 EXPERIMENT_DIR = DATA_DIR / "experiment"
 CITIES_FILE = DATA_DIR / "cities.json"
 DB_URL = os.environ.get("STREAMREALM_DB_URL", f"sqlite:///{(DATA_DIR / 'streamrealm.db').as_posix()}")
-DEFAULT_CITY = os.environ.get("STREAMREALM_CITY", "coimbra")
 
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "").strip()
 # Default from the claude-api skill's current model table (2026-10). Override with ANTHROPIC_MODEL,
@@ -23,6 +22,8 @@ AI_TIMEOUT_S = float(os.environ.get("AI_TIMEOUT_S", "8"))
 
 # Set to "0" to start with an empty world (no bots).
 SEED_DEMO = os.environ.get("STREAMREALM_SEED_DEMO", "1") != "0"
+# Bots only live in this city; cities you add yourself start empty (all fog).
+SEED_CITY = os.environ.get("STREAMREALM_SEED_CITY", "coimbra")
 
 CORS_ORIGINS = [o.strip() for o in os.environ.get("CORS_ORIGINS", "*").split(",") if o.strip()]
 

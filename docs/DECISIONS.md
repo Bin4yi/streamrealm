@@ -31,3 +31,15 @@ Small choices made while building, so reviewers can see why.
 | Claude model | `claude-opus-5` by default (`ANTHROPIC_MODEL` to override, e.g. `claude-haiku-4-5` for speed/cost). | Default from the Claude API reference used during the build. |
 | OneAquaHealth research sites | Not shown. | `api.enora-oah.eu` (used by apps.oneaquahealth.eu) answers 401 without login. We did not invent site data. |
 | FHIR IG | Profiles read from the IG source on GitHub (`hl7-eu/oah`, `input/fsh`). | `build.fhir.org/ig/hl7-eu/oah/` returned 404 during the hackathon. |
+| Two-step check | `POST /observations` makes a draft with the photo check; `POST /observations/{id}/confirm-ai` applies the rules with the final answers. | The player must see the photo check and decide before anything counts. Both answer sets are stored. |
+| Demo photos | Drawn by code (Pillow), labelled "DEMO". Real photos in `server/data/demo-photos/` are used instead when present. Demo photos skip the duplicate check and always add a "demo photo" note. | The brief forbids downloading photos. Many demo checks reuse the same 8 images. |
+| Kingdom healing | Kingdom health = average tile health + 2 per healed tile (fixed treasure or cleanup). | +15 on one tile averaged over ~80 tiles changes nothing visible. The brief wants "Fixed" to visibly raise kingdom health. |
+| Team patterns | Otters solid, Frogs white dots, Kingfishers white dashes on the map, plus a legend. | Colour is never the only signal (accessibility). |
+| Dashboard colours | Freshness = one-hue blue ramp; health = diverging red-gray-blue; experiment lines = validated categorical slots (blue, orange, aqua) + dashes for the 50% runs. | Checked with a colour-vision-deficiency validator; the first idea (green-yellow-red) was a rainbow ramp. |
+| Sounds | Web Audio oscillator "chiptune" sounds, web only, mute switch in Profile. | No sound files, so no licence questions. `expo-audio` needs files. |
+| Bot city | Bots only play in `STREAMREALM_SEED_CITY` (Coimbra). | A city you add to film your own demo starts as all fog. |
+| Coverage confirmations | Reported as-is: StreamRealm 30% vs normal app 32%. | We did not tune the model to make every number win. |
+| FHIR confirmations | A confirmation is a note linking the confirming Observation, not `derivedFrom`. | The second check is not derived from the first. |
+| FHIR validation | Validated with the HL7 validator against base R4 and against the OAH profiles compiled from the IG source with SUSHI. 0 errors in both. | Proves the claims in the README instead of only asserting them. |
+| Android build | `npx expo export --platform android --no-bytecode` builds. The Hermes bytecode step failed on this Windows machine (`spawn UNKNOWN`). | Toolchain issue on the build machine, not in the app code. Not run on a device. |
+| Server reload | `uvicorn --reload` on Windows sometimes kept serving old code during development; the scripts still use `--reload`, restart by hand if changes do not show. | Observed during the build. |

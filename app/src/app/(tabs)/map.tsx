@@ -1,14 +1,15 @@
 import { router } from 'expo-router';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ActivityTicker } from '@/components/game/ActivityTicker';
 import { DevPanel } from '@/components/game/DevPanel';
+import { MapLegend } from '@/components/game/MapLegend';
 import { Hud, StormBanner } from '@/components/game/Hud';
 import { TileSheet } from '@/components/game/TileSheet';
 import GameMap from '@/components/map/GameMap';
-import { Card, Chip, ErrorBox, GameButton, Txt } from '@/components/ui/kit';
+import { Card, Chip, ErrorBox, GameButton, IconButton, Txt } from '@/components/ui/kit';
 import { useCities, useStorm, useTiles } from '@/lib/api';
 import { ACTION_LABEL, CLAIM_RADIUS_M, classifyAction, previewPoints } from '@/lib/gameRules';
 import { distanceToLineM, formatDistance, nearest, offset } from '@/lib/geo';
@@ -30,6 +31,7 @@ export default function MapScreen() {
   const tiles = useTiles();
   const cities = useCities();
   const storm = useStorm();
+  const [legend, setLegend] = useState(false);
   const city = cities.data?.find((c) => c.key === g.city);
   useKeyboardWalk(g.devPanelEnabled);
   useRealGps();
@@ -134,6 +136,13 @@ export default function MapScreen() {
         </View>
       )}
 
+      {!g.selectedTileId && !g.devPanelOpen && (
+        <View style={styles.legendBtn}>
+          <IconButton icon="help" label="Map legend" onPress={() => setLegend(true)} size={44} />
+        </View>
+      )}
+      <MapLegend open={legend} onClose={() => setLegend(false)} />
+
       {!g.selectedTileId && <DevPanel />}
 
       {selected && (
@@ -161,5 +170,6 @@ const styles = StyleSheet.create({
   top: { position: 'absolute', left: space.md, right: space.md, top: 0, gap: space.sm },
   bottom: { position: 'absolute', left: space.md, right: space.md, bottom: 40, alignItems: 'center' },
   hint: { paddingHorizontal: space.md, paddingVertical: 6, borderRadius: 999, maxWidth: '100%' },
+  legendBtn: { position: 'absolute', right: space.md, bottom: 180 },
   loading: { position: 'absolute', top: '45%', left: 0, right: 0, alignItems: 'center' },
 });

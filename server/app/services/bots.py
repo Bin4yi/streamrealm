@@ -14,6 +14,7 @@ from typing import Optional
 
 from sqlmodel import Session, delete, select
 
+from .. import config
 from ..models import Event, Observation, Photo, Player, QuestProgress, Tile, TileState, Treasure, aware
 from . import photos, rules
 from .game import GameError, apply_rules
@@ -139,7 +140,7 @@ def bot_check(session: Session, rnd: random.Random, bot: Player, tile: Tile, now
 def seed_world(session: Session) -> dict:
     session.expire_on_commit = False  # bots touch hundreds of rows; no need to reload after each commit
     rnd = random.Random(SEED)
-    tiles = session.exec(select(Tile).order_by(Tile.id)).all()
+    tiles = session.exec(select(Tile).where(Tile.city == config.SEED_CITY).order_by(Tile.id)).all()
     if not tiles:
         return {"seeded": False}
     end = game_now(0)
@@ -199,7 +200,7 @@ def tick(session: Session, time_warp_days: float = 0) -> dict:
     session.expire_on_commit = False
     rnd = random.Random()
     bots = session.exec(select(Player).where(Player.is_bot == True)).all()  # noqa: E712
-    tiles = session.exec(select(Tile)).all()
+    tiles = session.exec(select(Tile).where(Tile.city == config.SEED_CITY)).all()
     if not bots or not tiles:
         return {"moves": []}
     now = game_now(time_warp_days)
