@@ -14,7 +14,8 @@ from ..services.world import describe, dispute_parties, game_now, tiles_geojson
 
 router = APIRouter(tags=["world"])
 
-AVATARS = ("otter", "frog", "bird", "swan", "butterfly", "fish", "turtle", "beaver")
+AVATARS = ("heron", "duck", "owl", "fox", "salamander", "dragonfly", "trout", "hedgehog")
+LEGACY_AVATARS = ("otter", "frog", "bird", "swan", "butterfly", "fish", "turtle", "beaver")  # emoji-only, before the image pack
 
 
 @router.get("/cities")
@@ -78,7 +79,7 @@ def create_player(body: NewPlayer, session: Session = Depends(get_session)):
     nickname = body.nickname.strip()
     if body.team not in rules.TEAMS:
         raise HTTPException(422, "Pick a team: otters, frogs or kingfishers")
-    if body.avatar not in AVATARS:
+    if body.avatar not in AVATARS + LEGACY_AVATARS:
         raise HTTPException(422, f"Pick an avatar: {', '.join(AVATARS)}")
     if not nickname.replace("_", "").replace("-", "").replace(" ", "").isalnum():
         raise HTTPException(422, "Use letters and numbers only in your nickname")

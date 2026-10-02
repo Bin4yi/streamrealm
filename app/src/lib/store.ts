@@ -23,6 +23,7 @@ type GameState = {
   timeWarpDays: number;
   autoTick: boolean;
   muted: boolean;
+  reducedMotion: boolean;
   filter: MapFilter;
   selectedTileId: string | null;
   claimFlash: ClaimFlash | null;
@@ -47,6 +48,7 @@ export const useGame = create<GameState>()(
       timeWarpDays: 0,
       autoTick: false,
       muted: false,
+      reducedMotion: false,
       filter: 'all',
       selectedTileId: null,
       claimFlash: null,
@@ -66,6 +68,7 @@ export const useGame = create<GameState>()(
         devPanelEnabled: s.devPanelEnabled,
         timeWarpDays: s.timeWarpDays,
         muted: s.muted,
+        reducedMotion: s.reducedMotion,
         useDemoPhotos: s.useDemoPhotos,
       }),
       onRehydrateStorage: () => () => useGame.setState({ hydrated: true }),

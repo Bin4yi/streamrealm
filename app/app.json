@@ -50,7 +50,8 @@
         {
           "cameraPermission": "StreamRealm uses the camera to take stream check photos."
         }
-      ]
+      ],
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true,

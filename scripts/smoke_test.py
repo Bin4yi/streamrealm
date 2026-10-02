@@ -49,7 +49,7 @@ def main() -> int:
 
     s, health = call(api, "GET", "/health")
     step("server is up", s == 200, health)
-    s, player = call(api, "POST", "/players", {"nickname": f"Smoke{uuid.uuid4().hex[:4]}", "avatar": "otter", "team": "otters"})
+    s, player = call(api, "POST", "/players", {"nickname": f"Smoke{uuid.uuid4().hex[:4]}", "avatar": "fox", "team": "otters"})
     step("create player", s == 200, player.get("id") if s == 200 else player)
     _, tiles = call(api, "GET", "/cities/coimbra/tiles")
     fog = next(f for f in tiles["features"] if f["properties"]["state"] == "fog" and not f["properties"]["unsafe"])

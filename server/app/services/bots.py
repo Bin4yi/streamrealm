@@ -31,7 +31,7 @@ BOT_NAMES = [
     "MudlarkMo", "TadpoleTed", "HeronHal", "BankRanger", "DewDrop", "StoneSkipper",
     "CressCat", "WaderWen", "FlowFox", "MarshMika", "SpringSam", "KelpKai",
 ]
-AVATARS = ["otter", "frog", "bird", "swan", "butterfly", "fish", "turtle", "beaver"]
+AVATARS = ["heron", "duck", "owl", "fox", "salamander", "dragonfly", "trout", "hedgehog"]
 
 
 def _tile_rng(tile_id: str) -> random.Random:

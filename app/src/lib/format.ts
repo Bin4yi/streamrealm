@@ -1,17 +1,28 @@
+import type { ImageSourcePropType } from 'react-native';
+
+import { Images } from './assets';
+
+/** Image avatars (emoji = fallback if the image is missing). */
 export const AVATARS: Record<string, string> = {
-  otter: '🦦',
-  frog: '🐸',
-  bird: '🐦',
-  swan: '🦢',
-  butterfly: '🦋',
-  fish: '🐟',
-  turtle: '🐢',
-  beaver: '🦫',
+  heron: '🪶',
+  duck: '🦆',
+  owl: '🦉',
+  fox: '🦊',
+  salamander: '🦎',
+  dragonfly: '🪰',
+  trout: '🐟',
+  hedgehog: '🦔',
 };
 export const AVATAR_IDS = Object.keys(AVATARS);
+/** Older emoji-only avatar ids, still shown for players created before the image pack. */
+const LEGACY: Record<string, string> = { otter: '🦦', frog: '🐸', bird: '🐦', swan: '🦢', butterfly: '🦋', fish: '🐟', turtle: '🐢', beaver: '🦫' };
+
+export function avatarImage(id: string | undefined | null): ImageSourcePropType | null {
+  return (id && (Images.avatar as Record<string, ImageSourcePropType | null>)[id]) || null;
+}
 
 export function avatarEmoji(id: string | undefined | null): string {
-  return (id && AVATARS[id]) || '🙂';
+  return (id && (AVATARS[id] ?? LEGACY[id])) || '🙂';
 }
 
 /** "just now", "3 hours ago", "5 days ago" */

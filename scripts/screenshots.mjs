@@ -13,7 +13,7 @@ await post('/dev/reset');
 await post('/dev/storm?on=auto');
 const tiles = await json('/cities/coimbra/tiles');
 const fog = tiles.features.find((f) => f.properties.state === 'fog' && f.properties.stream_name === 'Ribeira de Coselhas') ?? tiles.features.find((f) => f.properties.state === 'fog');
-const player = await post('/players', { nickname: 'RiverFox', avatar: 'otter', team: 'otters' });
+const player = await post('/players', { nickname: 'RiverFox', avatar: 'fox', team: 'otters' });
 const [lon, lat] = fog.properties.center;
 
 const browser = await chromium.launch();
