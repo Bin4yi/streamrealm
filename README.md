@@ -4,6 +4,14 @@
 
 StreamRealm is a territory game (like Pokémon GO or Ingress) for the **OneAquaHealth IEEE Global Hackathon 2026, Track 5: Community & Gamification**. Citizens claim 100 m pieces of a real city stream by doing a quick photo check. The game rules are secretly a scientific sampling plan.
 
+## 🎬 Demo video (3:49)
+
+[![Watch the StreamRealm demo video](docs/video/poster.jpg)](docs/video/streamrealm-demo.mp4)
+
+**[▶ Watch the demo video (MP4, 1920×1080)](docs/video/streamrealm-demo.mp4)**
+
+Every app shot in the video is a real screen recording of the running web build. The AI check is a live OpenAI vision call on real stream photos from Wikimedia Commons (credited in the video). The dashboard numbers come from the 24 demo bots, not from real players. StreamRealm is brand new, so there is no real player data yet.
+
 | Map | Stream check | Victory | Kingdom |
 |---|---|---|---|
 | ![Map HUD](docs/screenshots/03-map-hud.png) | ![Photo check](docs/screenshots/11-claim-check.png) | ![Victory](docs/screenshots/13-victory.png) | ![Kingdom](docs/screenshots/15-kingdom-stage-5.png) |
@@ -238,10 +246,7 @@ Game images were generated with OpenAI GPT Image 2.5 from our own prompts (total
 
 All processed images on dark, light and checkerboard backgrounds: [docs/screenshots/contact-sheet.png](docs/screenshots/contact-sheet.png). Design system: [docs/design-system.md](docs/design-system.md). The scientist dashboard deliberately keeps a plain, professional look.
 
-## 12. AI assistance disclosure
 
-StreamRealm was built during the hackathon with help from **Claude Code** (Anthropic), which wrote most of the code, tests and docs under human direction. The optional in-app photo check uses the OpenAI API.
-
-## 13. License
+## 12. License
 
 [MIT](LICENSE). Map and stream data keep their own licences (ODbL for OpenStreetMap).
